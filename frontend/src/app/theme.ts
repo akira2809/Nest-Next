@@ -54,17 +54,23 @@ const theme = createTheme({
                 },
             },
         },
-        // MuiGrid: {
-        //     styleOverrides: {
-        //         root: {
-        //             "&.MuiGrid-item": {
+        MuiFormControl: {
+            styleOverrides: {
+                root: {
+                    variants: [
+                        {
+                            props: { variant: 'outlined' },
+                            style: {
+                                borderColor: "black"
+                            },
+                        },
+                    ],
+                },
+            },
+        },
 
-        //                 padding: 0
-        //             }
-        //         }
-        //     }
-        // }
     },
 });
+
 
 export default theme;
