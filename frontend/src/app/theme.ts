@@ -24,6 +24,46 @@ const theme = createTheme({
                 },
             },
         },
+        MuiTypography: {
+            styleOverrides: {
+                root: {
+                    variants: [
+                        {
+                            props: { variant: 'body2' },
+                            style: {
+                                color: "#951329", fontWeight: 600
+                            },
+                        },
+                    ],
+                },
+            }
+        },
+        MuiToggleButton: {
+            defaultProps: {
+                disableRipple: true,
+            },
+            styleOverrides: {
+                root: {
+                    // "&.Mui-selected, &.Mui-selected:hover": {
+                    //     backgroundColor: "",
+                    //     border: "3px solid #000",
+
+                    // },
+
+
+                },
+            },
+        },
+        // MuiGrid: {
+        //     styleOverrides: {
+        //         root: {
+        //             "&.MuiGrid-item": {
+
+        //                 padding: 0
+        //             }
+        //         }
+        //     }
+        // }
     },
 });
 
