@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 export default function HomePage() {
   return (
     <div className="text-center p-10">
@@ -6,6 +7,17 @@ export default function HomePage() {
       <button className="mt-6 px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-700">
         Bấm vào tui đi! 😆
       </button>
+=======
+import ImageSlider from "./components/Banner";
+import MainContent from "./components/MainContent";
+import Divider from '@mui/material/Divider';
+export default function Home() {
+  return (
+    <div>
+      <ImageSlider />
+      <MainContent></MainContent>
+      <Divider />
+>>>>>>> main
     </div>
   );
 }
