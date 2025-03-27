@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import {
-    AppBar, Toolbar, Typography, Button, IconButton, Drawer, List, ListItem, ListItemText, Box, Badge, Avatar
+    AppBar, Toolbar, Typography, Button, IconButton, Drawer, List, ListItem, ListItemText, Box, Badge, Avatar, Popper, Grow, Paper, ClickAwayListener, MenuList, MenuItem
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Link from "next/link";
 
 interface HeaderProps {
@@ -21,6 +22,8 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
     const [scrolling, setScrolling] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [userName, setUserName] = useState("");
+    const [aoAnchorEl, setAoAnchorEl] = useState<null | HTMLElement>(null);
+    const [quanAnchorEl, setQuanAnchorEl] = useState<null | HTMLElement>(null);
     const [cartItems,] = useState([
         { id: 1, name: "T-Shirt", price: 20, image: "https://via.placeholder.com/50" },
         { id: 2, name: "Sneakers", price: 50, image: "https://via.placeholder.com/50" },
@@ -39,6 +42,22 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
         setUserName("Doan Phan Kinh Kha");
     };
 
+    // Dropdown handlers for Áo
+    const handleAoMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setAoAnchorEl(event.currentTarget);
+    };
+    const handleAoMenuClose = () => {
+        setAoAnchorEl(null);
+    };
+
+    // Dropdown handlers for Quần
+    const handleQuanMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setQuanAnchorEl(event.currentTarget);
+    };
+    const handleQuanMenuClose = () => {
+        setQuanAnchorEl(null);
+    };
+
     const menuItems = [
         { text: "Home", link: "/" },
         { text: "Services", link: "/services" },
@@ -46,9 +65,20 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
         { text: "Contact", link: "/contact" },
     ];
 
+    const aoMenuItems = [
+        { text: "Áo Phông", link: "/ao-phong" },
+        { text: "Áo Sơ Mi", link: "/ao-so-mi" },
+        { text: "Áo Khoác", link: "/ao-khoac" },
+    ];
+
+    const quanMenuItems = [
+        { text: "Quần Jeans", link: "/quan-jeans" },
+        { text: "Quần Short", link: "/quan-short" },
+        { text: "Quần Tây", link: "/quan-tay" },
+    ];
+
     return (
         <>
-            {/* Header */}
             <AppBar
                 position="fixed"
                 sx={{
@@ -65,25 +95,147 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
             >
                 <Toolbar>
                     {/* Mobile Menu Icon */}
-                    <IconButton edge="start" sx={{ display: { xs: "block", md: "none" }, color: darkMode ? "white" : "black" }} onClick={handleDrawerToggle}>
+                    <IconButton 
+                        edge="start" 
+                        sx={{ 
+                            display: { xs: "block", md: "none" }, 
+                            color: darkMode ? "white" : "black" 
+                        }} 
+                        onClick={handleDrawerToggle}
+                    >
                         <MenuIcon />
                     </IconButton>
 
-                    <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: "bold", letterSpacing: "1px", color: darkMode ? "white" : "black" }}>
+                    <Typography 
+                        variant="h6" 
+                        sx={{ 
+                            flexGrow: 1, 
+                            fontWeight: "bold", 
+                            letterSpacing: "1px", 
+                            color: darkMode ? "white" : "black" 
+                        }}
+                    >
                         FutureTech 2025
                     </Typography>
 
                     {/* Desktop Menu */}
-                    <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2 }}>
+                    <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2, alignItems: "center" }}>
                         {menuItems.map((item) => (
-                            <Button key={item.text} sx={{ color: darkMode ? "white" : "black" }} component={Link} href={item.link}>
+                            <Button 
+                                key={item.text} 
+                                sx={{ color: darkMode ? "white" : "black" }} 
+                                component={Link} 
+                                href={item.link}
+                            >
                                 {item.text}
                             </Button>
                         ))}
+
+                        {/* Áo Dropdown */}
+                            <Button
+                                onMouseEnter={handleAoMenuOpen}
+                                sx={{ 
+                                    color: darkMode ? "white" : "black", 
+                                    display: "flex", 
+                                    alignItems: "center" 
+                                }}
+                            >
+                                Áo
+                                <ExpandMoreIcon fontSize="small" />
+                            </Button>
+                            <Popper
+                                open={Boolean(aoAnchorEl)}
+                                anchorEl={aoAnchorEl}
+                                placement="bottom-start"
+                                transition
+                                disablePortal
+                                sx={{ zIndex: 1200 }}
+                            >
+                                {({ TransitionProps }) => (
+                                    <Grow
+                                        {...TransitionProps}
+                                        style={{ transformOrigin: 'top center' }}
+                                    >
+                                        <Paper>
+                                            <ClickAwayListener onClickAway={handleAoMenuClose}>
+                                                <MenuList
+                                                    onMouseLeave={handleAoMenuClose}
+                                                    autoFocusItem={Boolean(aoAnchorEl)}
+                                                >
+                                                    {aoMenuItems.map((item) => (
+                                                        <MenuItem 
+                                                            key={item.text} 
+                                                            component={Link} 
+                                                            href={item.link}
+                                                            onClick={handleAoMenuClose}
+                                                        >
+                                                            {item.text}
+                                                        </MenuItem>
+                                                    ))}
+                                                </MenuList>
+                                            </ClickAwayListener>
+                                        </Paper>
+                                    </Grow>
+                                )}
+                            </Popper>
+                        </Box>
+
+                        {/* Quần Dropdown */}
+                        <Box>
+                            <Button
+                                onMouseEnter={handleQuanMenuOpen}
+                                sx={{ 
+                                    color: darkMode ? "white" : "black", 
+                                    display: "flex", 
+                                    alignItems: "center" 
+                                }}
+                            >
+                                Quần
+                                <ExpandMoreIcon fontSize="small" />
+                            </Button>
+                            <Popper
+                                open={Boolean(quanAnchorEl)}
+                                anchorEl={quanAnchorEl}
+                                placement="bottom-start"
+                                transition
+                                disablePortal
+                                sx={{ zIndex: 1200 }}
+                            >
+                                {({ TransitionProps }) => (
+                                    <Grow
+                                        {...TransitionProps}
+                                        style={{ transformOrigin: 'top center' }}
+                                    >
+                                        <Paper>
+                                            <ClickAwayListener onClickAway={handleQuanMenuClose}>
+                                                <MenuList
+                                                    onMouseLeave={handleQuanMenuClose}
+                                                    autoFocusItem={Boolean(quanAnchorEl)}
+                                                >
+                                                    {quanMenuItems.map((item) => (
+                                                        <MenuItem 
+                                                            key={item.text} 
+                                                            component={Link} 
+                                                            href={item.link}
+                                                            onClick={handleQuanMenuClose}
+                                                        >
+                                                            {item.text}
+                                                        </MenuItem>
+                                                    ))}
+                                                </MenuList>
+                                            </ClickAwayListener>
+                                        </Paper>
+                                    </Grow>
+                                )}
+                            </Popper>
+                        </Box>
                     </Box>
 
                     {/* Cart Icon */}
-                    <IconButton onClick={toggleCart} sx={{ ml: 2, color: darkMode ? "white" : "black" }}>
+                    <IconButton 
+                        onClick={toggleCart} 
+                        sx={{ ml: 2, color: darkMode ? "white" : "black" }}
+                    >
                         <Badge badgeContent={cartItems.length} color="error">
                             <ShoppingCartIcon />
                         </Badge>
@@ -92,7 +244,9 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
                     {/* Login / Profile */}
                     {isLoggedIn ? (
                         <Box sx={{ display: "flex", alignItems: "center", ml: 2 }}>
-                            <Avatar sx={{ bgcolor: "primary.main", width: 30, height: 30 }}>{userName[0]}</Avatar>
+                            <Avatar sx={{ bgcolor: "primary.main", width: 30, height: 30 }}>
+                                {userName[0]}
+                            </Avatar>
                             <Typography sx={{ ml: 1, fontWeight: "bold", color: darkMode ? "white" : "black" }}>
                                 {userName}
                             </Typography>
@@ -100,7 +254,12 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
                     ) : (
                         <Button
                             variant="outlined"
-                            sx={{ borderRadius: "20px", borderColor: darkMode ? "white" : "black", color: darkMode ? "white" : "black", ml: 2 }}
+                            sx={{ 
+                                borderRadius: "20px", 
+                                borderColor: darkMode ? "white" : "black", 
+                                color: darkMode ? "white" : "black", 
+                                ml: 2 
+                            }}
                             onClick={handleLogin}
                         >
                             Đăng nhập
@@ -108,26 +267,83 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
                     )}
 
                     {/* Dark Mode Toggle */}
-                    <IconButton onClick={toggleDarkMode} sx={{ ml: 2, color: darkMode ? "white" : "black" }}>
+                    <IconButton 
+                        onClick={toggleDarkMode} 
+                        sx={{ ml: 2, color: darkMode ? "white" : "black" }}
+                    >
                         {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
                     </IconButton>
                 </Toolbar>
             </AppBar>
 
-            {/* Drawer - Mobile Menu */}
-            <Drawer anchor="left" open={mobileOpen} onClose={handleDrawerToggle} sx={{ display: { xs: "block", md: "none" } }}>
+            {/* Mobile Drawer */}
+            <Drawer 
+                anchor="left" 
+                open={mobileOpen} 
+                onClose={handleDrawerToggle} 
+                sx={{ display: { xs: "block", md: "none" } }}
+            >
                 <List sx={{ width: 250 }}>
                     {menuItems.map((item) => (
                         <ListItem key={item.text} onClick={handleDrawerToggle}>
-                            <Link href={item.link} style={{ textDecoration: "none", color: "inherit", width: "100%" }}>
+                            <Link 
+                                href={item.link} 
+                                style={{ textDecoration: "none", color: "inherit", width: "100%" }}
+                            >
                                 <ListItemText primary={item.text} sx={{ color: "black" }} />
                             </Link>
                         </ListItem>
                     ))}
+
+                    {/* Áo Submenu */}
+                    <ListItem 
+                        button 
+                        onClick={() => setAoAnchorEl(aoAnchorEl ? null : document.body)}
+                    >
+                        <ListItemText primary="Áo" />
+                        <ExpandMoreIcon />
+                    </ListItem>
+                    {Boolean(aoAnchorEl) && (
+                        <List component="div" disablePadding>
+                            {aoMenuItems.map((item) => (
+                                <ListItem 
+                                    key={item.text} 
+                                    sx={{ pl: 4 }}
+                                    component={Link}
+                                    href={item.link}
+                                >
+                                    <ListItemText primary={item.text} />
+                                </ListItem>
+                            ))}
+                        </List>
+                    )}
+
+                    {/* Quần Submenu */}
+                    <ListItem 
+                        button 
+                        onClick={() => setQuanAnchorEl(quanAnchorEl ? null : document.body)}
+                    >
+                        <ListItemText primary="Quần" />
+                        <ExpandMoreIcon />
+                    </ListItem>
+                    {Boolean(quanAnchorEl) && (
+                        <List component="div" disablePadding>
+                            {quanMenuItems.map((item) => (
+                                <ListItem 
+                                    key={item.text} 
+                                    sx={{ pl: 4 }}
+                                    component={Link}
+                                    href={item.link}
+                                >
+                                    <ListItemText primary={item.text} />
+                                </ListItem>
+                            ))}
+                        </List>
+                    )}
                 </List>
             </Drawer>
 
-            {/* Drawer - Cart */}
+            {/* Cart Drawer */}
             <Drawer anchor="right" open={cartOpen} onClose={toggleCart}>
                 <List sx={{ width: 300, p: 2 }}>
                     <Typography variant="h6" sx={{ fontWeight: "bold", textAlign: "center" }}>
@@ -138,7 +354,13 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
                     ) : (
                         cartItems.map((item) => (
                             <ListItem key={item.id} sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                                <img src={item.image} alt={item.name} width={50} height={50} style={{ borderRadius: "8px" }} />
+                                <img 
+                                    src={item.image} 
+                                    alt={item.name} 
+                                    width={50} 
+                                    height={50} 
+                                    style={{ borderRadius: "8px" }} 
+                                />
                                 <ListItemText primary={item.name} secondary={`$${item.price}`} />
                             </ListItem>
                         ))
