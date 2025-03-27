@@ -132,6 +132,7 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
                         ))}
 
                         {/* Áo Dropdown */}
+                        <Box>
                             <Button
                                 onMouseEnter={handleAoMenuOpen}
                                 sx={{ 
