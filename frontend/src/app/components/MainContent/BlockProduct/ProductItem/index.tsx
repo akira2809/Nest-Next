@@ -24,6 +24,26 @@ const products = [
         name: "Áo Sơ Mi - AJ240724DT",
         price: "760.000₫",
         image: "https://product.hstatic.net/1000402464/product/ws25ss05t-sdbb_green_ck__2__b9fc1541947c4762b6c29129fa4f0635_large.jpg"
+    },
+    {
+        name: "Áo Blazer - BL241350",
+        price: "2.150.000₫",
+        image: "https://product.hstatic.net/1000402464/product/ws25ss05t-sdbb_green_ck__2__b9fc1541947c4762b6c29129fa4f0635_large.jpg"
+    },
+    {
+        name: "Quần Tây - QRT242800",
+        price: "680.000₫",
+        image: "https://product.hstatic.net/1000402464/product/ws25ss05t-sdbb_green_ck__2__b9fc1541947c4762b6c29129fa4f0635_large.jpg"
+    },
+    {
+        name: "Áo Len - AG231672",
+        price: "398.000₫",
+        image: "https://product.hstatic.net/1000402464/product/ws25ss05t-sdbb_green_ck__2__b9fc1541947c4762b6c29129fa4f0635_large.jpg"
+    },
+    {
+        name: "Áo Sơ Mi - AJ240724DT",
+        price: "760.000₫",
+        image: "https://product.hstatic.net/1000402464/product/ws25ss05t-sdbb_green_ck__2__b9fc1541947c4762b6c29129fa4f0635_large.jpg"
     }
 ];
 
