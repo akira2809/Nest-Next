@@ -4,11 +4,13 @@ import { notFound } from "next/navigation";
 interface Product {
     id: string;
     name: string;
-    image: string;
-    price: number;
+    main_image: string;
+    base_price: number;
     description: string;
     colors: string[];
     sizes: string[];
+    sale_price?: number
+    product_variants: any[]
 }
 
 type Params = {
@@ -28,6 +30,7 @@ async function getProduct(slug: string): Promise<Product | null> {
 
 export default async function ProductDetailPage({ params }: { params: Params }) {
     const product = await getProduct(params.slug);
+    console.log(product)
     if (!product) return notFound();
 
     return <ProductDetail product={product} />;

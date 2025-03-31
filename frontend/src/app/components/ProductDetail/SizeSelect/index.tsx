@@ -3,12 +3,16 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography'
 import { useState } from "react";
 import { ToggleButton, ToggleButtonGroup } from "@mui/material";
-export default function ProductDetail() {
+export default function ProductDetail({ sizes }: { sizes: any }) {
     const [size, setSize] = useState<string | null>();
 
     const handleSizeChange = (_event: React.MouseEvent<HTMLElement>, newSize: string | null) => {
         if (newSize !== null) setSize(newSize);
     };
+    const uniqueSizes = Array.from(
+        new Map(sizes.map((c: any) => [c.product_size.size_name, c])).values()
+    );
+    console.log(uniqueSizes)
     return (
 
         <Box>
@@ -16,10 +20,10 @@ export default function ProductDetail() {
                 Size bạn đang chọn: {size}
             </Typography>
             <ToggleButtonGroup value={size} sx={{ gap: 2 }} exclusive onChange={handleSizeChange}>
-                {["S", "M", "L", "XL"].map((s) => (
+                {uniqueSizes.map((s: any) => (
                     <ToggleButton
-                        key={s}
-                        value={s}
+                        key={s.product_variant_id}
+                        value={s.product_size.size_name}
                         sx={{
                             backgroundColor: "transparent",
                             border: "1px solid #e5e5e5 !important",
@@ -37,7 +41,7 @@ export default function ProductDetail() {
                             // borderLeft: "0px slide #000",
                         }}
                     >
-                        {s}
+                        {s.product_size.size_name}
                     </ToggleButton>
                 ))}
             </ToggleButtonGroup>

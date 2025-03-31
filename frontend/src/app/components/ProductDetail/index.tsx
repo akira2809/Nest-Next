@@ -10,16 +10,20 @@ import Button from "@mui/material/Button";
 import ExchangePolicy from "./ExchangePolicy";
 import DescriptionProduct from "./DescriptionProduct";
 import { useState } from "react";
+import ColorSelect from "./ColorSelect";
+import SizeSelect from "./SizeSelect";
 
 // Định nghĩa interface cho sản phẩm
 interface Product {
     id: string;
     name: string;
-    image: string;
-    price: number;
+    main_image: string;
+    base_price: number;
     description: string;
     colors: string[];
     sizes: string[];
+    sale_price?: number
+    product_variants: any[]
 }
 
 interface ProductDetailProps {
@@ -45,12 +49,12 @@ export default function ProductDetail({ product }: ProductDetailProps) {
     };
 
     return (
-        <Container maxWidth="lg">
+        <Container maxWidth="lg" sx={{ mt: "65px" }}>
             <Grid2 container spacing={2} sx={{ py: 3, m: 0 }}>
                 {/* Hình ảnh sản phẩm */}
                 <Grid2 xs={12} sm={12} md={6}>
                     <Box>
-                        <Image src={product.image} alt={product.name} width={500} height={500} />
+                        <Image src={product.main_image} alt={product.name} width={500} height={500} />
                     </Box>
                 </Grid2>
 
@@ -58,13 +62,13 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                 <Grid2 xs={12} sm={12} md={6}>
                     <Box>
                         <Typography variant="h5">{product.name}</Typography>
-                        <Typography variant="body2" sx={{ fontSize: 26 }}>
-                            {product.price.toLocaleString()}₫
+                        <Typography variant="body2" sx={{ fontSize: 26, color: "#951329", fontWeight: 600 }}>
+                            {product.base_price.toLocaleString()}₫
                         </Typography>
 
-                        {/* Chọn màu & size
-                        <ColorSelect colors={product.colors} />
-                        <SizeSelect sizes={product.sizes} /> */}
+                        Chọn màu & size
+                        <ColorSelect colors={product.product_variants} />
+                        <SizeSelect sizes={product.product_variants} />
 
                         <Box sx={{ my: 3 }}>
                             <Button variant="contained" sx={{ backgroundColor: "#c21935", color: "white" }}>

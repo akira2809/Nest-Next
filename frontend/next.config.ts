@@ -5,7 +5,8 @@ const nextConfig = {
       'file.hstatic.net',
       'product.hstatic.net',
       'owen.cdn.vccloud.vn',
-      'dosi-in.com' // Thêm domain này
+      'dosi-in.com',
+      "i.ytimg.com" // Thêm domain này
     ],
   },
 };
