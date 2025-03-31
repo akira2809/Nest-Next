@@ -1,65 +1,54 @@
 "use client";
+import { useEffect, useState } from "react";
 import { Box, Grid, Typography, Card, CardMedia, CardContent, IconButton, Tooltip, Button } from "@mui/material";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
-import { useState } from "react";
+import { useRouter } from 'next/navigation'; // Dùng next/navigation thay vì next/router
 
-const products = [
-    {
-        name: "Áo Blazer - BL241350",
-        price: "2.150.000₫",
-        image: "https://product.hstatic.net/1000402464/product/ws25ss05t-sdbb_green_ck__2__b9fc1541947c4762b6c29129fa4f0635_large.jpg"
-    },
-    {
-        name: "Quần Tây - QRT242800",
-        price: "680.000₫",
-        image: "https://product.hstatic.net/1000402464/product/ws25ss05t-sdbb_green_ck__2__b9fc1541947c4762b6c29129fa4f0635_large.jpg"
-    },
-    {
-        name: "Áo Len - AG231672",
-        price: "398.000₫",
-        image: "https://product.hstatic.net/1000402464/product/ws25ss05t-sdbb_green_ck__2__b9fc1541947c4762b6c29129fa4f0635_large.jpg"
-    },
-    {
-        name: "Áo Sơ Mi - AJ240724DT",
-        price: "760.000₫",
-        image: "https://product.hstatic.net/1000402464/product/ws25ss05t-sdbb_green_ck__2__b9fc1541947c4762b6c29129fa4f0635_large.jpg"
-    },
-    {
-        name: "Áo Blazer - BL241350",
-        price: "2.150.000₫",
-        image: "https://product.hstatic.net/1000402464/product/ws25ss05t-sdbb_green_ck__2__b9fc1541947c4762b6c29129fa4f0635_large.jpg"
-    },
-    {
-        name: "Quần Tây - QRT242800",
-        price: "680.000₫",
-        image: "https://product.hstatic.net/1000402464/product/ws25ss05t-sdbb_green_ck__2__b9fc1541947c4762b6c29129fa4f0635_large.jpg"
-    },
-    {
-        name: "Áo Len - AG231672",
-        price: "398.000₫",
-        image: "https://product.hstatic.net/1000402464/product/ws25ss05t-sdbb_green_ck__2__b9fc1541947c4762b6c29129fa4f0635_large.jpg"
-    },
-    {
-        name: "Áo Sơ Mi - AJ240724DT",
-        price: "760.000₫",
-        image: "https://product.hstatic.net/1000402464/product/ws25ss05t-sdbb_green_ck__2__b9fc1541947c4762b6c29129fa4f0635_large.jpg"
-    }
-];
+interface Product {
+    product_id: number;
+    name: string;
+    base_price: string;
+    sale_price?: string;
+    main_image: string;
+    slug: string;
+}
 
 export default function ProductItem() {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    const router = useRouter();
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await fetch("http://localhost:3001/product");
+                if (!response.ok) throw new Error("Lỗi khi lấy dữ liệu");
+                const data: Product[] = await response.json();
+                setProducts(data);
+            } catch (err) {
+                setError((err as Error).message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProducts();
+    }, []);
+
+    if (loading) return <Typography>Đang tải sản phẩm...</Typography>;
+    if (error) return <Typography color="error">Lỗi: {error}</Typography>;
 
     return (
         <Box sx={{ textAlign: "center", my: 4 }}>
-            {/* Tiêu đề to & đậm */}
             <Typography variant="h5" sx={{ fontWeight: "bold", mb: 3 }}>
                 SẢN PHẨM BÁN CHẠY NHẤT
             </Typography>
 
             <Grid container spacing={3}>
                 {products.map((product, index) => (
-                    <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={product.product_id}>
                         <Card
                             sx={{
                                 borderRadius: 2,
@@ -72,11 +61,10 @@ export default function ProductItem() {
                             onMouseEnter={() => setHoveredIndex(index)}
                             onMouseLeave={() => setHoveredIndex(null)}
                         >
-                            {/* Hình ảnh sản phẩm */}
                             <Box sx={{ position: "relative" }}>
                                 <CardMedia
                                     component="img"
-                                    image={product.image}
+                                    image={product.main_image}
                                     alt={product.name}
                                     sx={{
                                         height: 380,
@@ -87,7 +75,6 @@ export default function ProductItem() {
                                     }}
                                 />
 
-                                {/* Hover hiện nút "Mua ngay" */}
                                 <Box
                                     sx={{
                                         position: "absolute",
@@ -98,17 +85,17 @@ export default function ProductItem() {
                                         transition: "all 0.3s ease",
                                     }}
                                 >
-                                    <Button 
-                                        variant="contained" 
-                                        color="primary" 
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
                                         size="small"
                                         sx={{ fontWeight: "bold", textTransform: "none" }}
+                                        onClick={() => router.push(`/product/${product.slug}`)} // Điều hướng đến trang chi tiết sản phẩm
                                     >
                                         Mua ngay
                                     </Button>
                                 </Box>
 
-                                {/* Icon ❤️ & 🛒 */}
                                 <Box
                                     sx={{
                                         position: "absolute",
@@ -133,13 +120,12 @@ export default function ProductItem() {
                                 </Box>
                             </Box>
 
-                            {/* Thông tin sản phẩm */}
                             <CardContent sx={{ textAlign: "center", padding: 2 }}>
                                 <Typography variant="subtitle1" fontWeight="bold">
                                     {product.name}
                                 </Typography>
                                 <Typography variant="body1" sx={{ color: "#d32f2f", fontWeight: 600, mt: 1 }}>
-                                    {product.price}
+                                    {product.sale_price ? `${product.sale_price}₫` : `${product.base_price}₫`}
                                 </Typography>
                             </CardContent>
                         </Card>
