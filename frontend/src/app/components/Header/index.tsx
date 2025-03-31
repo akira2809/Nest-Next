@@ -10,7 +10,6 @@ import LightModeIcon from "@mui/icons-material/LightMode";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Link from "next/link";
-
 interface HeaderProps {
     darkMode: boolean;
     toggleDarkMode: () => void;

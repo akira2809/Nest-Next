@@ -7,11 +7,11 @@ import CssBaseline from "@mui/material/CssBaseline";
 import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
+import { ReduxProvider } from "@/redux/provider";// Import store
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [darkMode, setDarkMode] = React.useState(false);
 
-  // Tạo theme động theo darkMode
   const theme = React.useMemo(
     () =>
       createTheme({
@@ -28,10 +28,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <InitColorSchemeScript attribute="class" />
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ThemeProvider theme={theme}>
-            <Header darkMode={darkMode} toggleDarkMode={() => setDarkMode(!darkMode)} />
-            <CssBaseline />
-            {children}
-            <Footer />
+            <ReduxProvider> {/* Bọc Redux Provider */}
+              <Header darkMode={darkMode} toggleDarkMode={() => setDarkMode(!darkMode)} />
+              <CssBaseline />
+              {children}
+              <Footer />
+            </ReduxProvider>
           </ThemeProvider>
         </AppRouterCacheProvider>
       </body>
