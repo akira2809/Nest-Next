@@ -59,6 +59,7 @@ export default function ProductItem({ product }: ProductItemProps) {
             transform: hovered ? "translate(-50%, -50%)" : "translate(-50%, 70%)",
             opacity: hovered ? 1 : 0,
             transition: "all 0.3s ease",
+
           }}
         >
           <Button variant="contained" color="primary" size="small" onClick={() => router.push(`/product/${product.slug}`)}>
