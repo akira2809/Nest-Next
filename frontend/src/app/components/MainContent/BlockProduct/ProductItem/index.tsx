@@ -157,9 +157,7 @@ export default function ProductItem({ product }: ProductItemProps) {
               ? "translate(-50%, -50%)"
               : "translate(-50%, 70%)",
             opacity: hovered ? 1 : 0,
-            transition: "all 0.4s ease",
-            zIndex: 2,
-            width: "70%",
+            transition: "all 0.3s ease",
           }}
         >
           <Button
