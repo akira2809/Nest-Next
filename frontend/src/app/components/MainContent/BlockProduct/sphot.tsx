@@ -1,9 +1,20 @@
 "use client";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, Grid, Typography, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Grid,
+  Typography,
+  CircularProgress,
+  Skeleton,
+} from "@mui/material";
 import ProductItem from "./ProductItem";
-import { fetchHotProducts, selectHotProducts, selectHotProductsLoading, selectHotProductsError } from "@/redux/slices/hotProductSlice";
+import {
+  fetchHotProducts,
+  selectHotProducts,
+  selectHotProductsLoading,
+  selectHotProductsError,
+} from "@/redux/slices/hotProductSlice";
 import { AppDispatch } from "@/redux/store";
 
 export default function Sphot() {
@@ -13,13 +24,13 @@ export default function Sphot() {
   const error = useSelector(selectHotProductsError);
 
   useEffect(() => {
-    dispatch(fetchHotProducts());
-  }, [dispatch]);
+    if (!products.length) {
+      dispatch(fetchHotProducts());
+    }
+  }, [dispatch, products.length]);
 
   return (
-    <Box sx={{ p: 0, textAlign: "center" }}>
-      {/* Banner */}
-
+    <Box sx={{ p: 2, textAlign: "center" }}>
       {/* Tiêu đề sản phẩm */}
       <Typography
         variant="h5"
@@ -28,17 +39,30 @@ export default function Sphot() {
           mb: 3,
           borderBottom: "3px solid #1976D2",
           display: "inline-block",
+          paddingBottom: "8px",
+          textTransform: "uppercase",
+          letterSpacing: "1px",
+          paddingLeft: "90px", // Thêm padding bên trái
+          paddingRight: "90px", // Thêm padding bên phải
         }}
       >
         SẢN PHẨM BÁN CHẠY NHẤT
       </Typography>
 
-      {/* Loading & Error Handling */}
+      {/* Loading Skeleton */}
       {loading && (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-          <CircularProgress />
-        </Box>
+        <Grid container spacing={3}>
+          {[...Array(4)].map((_, index) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+              <Skeleton variant="rectangular" width="100%" height={200} />
+              <Skeleton width="80%" sx={{ mt: 1 }} />
+              <Skeleton width="60%" />
+            </Grid>
+          ))}
+        </Grid>
       )}
+
+      {/* Error Handling */}
       {error && (
         <Typography color="error" sx={{ mt: 3 }}>
           Lỗi: {error}
