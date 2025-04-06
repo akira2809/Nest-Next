@@ -15,6 +15,9 @@ import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import WhatshotIcon from "@mui/icons-material/Whatshot";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { addToCart } from "@/redux/slices/cartSlice";
+import Swal from "sweetalert2";
 
 interface Product {
   product_id: number;
@@ -33,7 +36,7 @@ interface ProductItemProps {
 export default function ProductItem({ product }: ProductItemProps) {
   const router = useRouter();
   const [hovered, setHovered] = useState<boolean>(false);
-
+  const dispatch = useDispatch(); // Khai báo useDispatch để lấy hàm dispatch
   // Calculate discount percentage if both prices exist
   const discountPercentage =
     product.sale_price && product.base_price
@@ -160,7 +163,6 @@ export default function ProductItem({ product }: ProductItemProps) {
             transition: "all 0.4s ease",
             zIndex: 2,
             width: "70%",
-
           }}
         >
           <Button
@@ -217,20 +219,36 @@ export default function ProductItem({ product }: ProductItemProps) {
             </IconButton>
           </Tooltip>
           <Tooltip title="Thêm vào giỏ hàng">
-            <IconButton
-              sx={{
-                bgcolor: "white",
-                color: "#000000",
-                "&:hover": {
-                  bgcolor: "#ffffff",
-                  transform: "scale(1.1)",
-                  color: "#ff0000",
-                },
-              }}
-            >
-              <AddShoppingCartIcon />
-            </IconButton>
-          </Tooltip>
+  <div
+    onClick={() => {
+      dispatch(addToCart(product));
+      Swal.fire({
+        icon: "success",
+        title: "Đã thêm vào giỏ hàng!",
+        text: `${product.name} đã được thêm vào giỏ hàng.`,
+        showConfirmButton: false,
+        timer: 1500,
+        timerProgressBar: true,
+      });
+    }}
+    style={{ cursor: "pointer" }}
+  >
+    <IconButton
+      sx={{
+        bgcolor: "white",
+        color: "#000000",
+        transition: "0.3s",
+        "&:hover": {
+          bgcolor: "#ffffff",
+          transform: "scale(1.1)",
+          color: "#ff0000",
+        },
+      }}
+    >
+      <AddShoppingCartIcon />
+    </IconButton>
+  </div>
+</Tooltip>
         </Box>
       </Box>
 

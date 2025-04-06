@@ -2,12 +2,13 @@ import { configureStore } from "@reduxjs/toolkit";
 import hotProductsReducer from "@/redux/slices/hotProductSlice";
 import newProductsReducer from "@/redux/slices/newProductsSlice";
 import productReducer from "@/redux/slices/productSlice";
-
+import cartReducer from "./slices/cartSlice";
 export const store = configureStore({
   reducer: {
     hotProducts: hotProductsReducer,
     newProducts: newProductsReducer,
     product: productReducer,
+    cart:   cartReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }), // Đảm bảo hỗ trợ asyncThunk
