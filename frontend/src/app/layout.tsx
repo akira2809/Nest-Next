@@ -8,9 +8,11 @@ import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import { ReduxProvider } from "@/redux/provider";// Import store
-
+import { usePathname } from 'next/navigation'
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [darkMode, setDarkMode] = React.useState(false);
+  const pathname = usePathname()
+  const isAdminRoute = pathname.startsWith('/admin')
 
   const theme = React.useMemo(
     () =>
@@ -29,10 +31,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
           <ThemeProvider theme={theme}>
             <ReduxProvider> {/* Bọc Redux Provider */}
-              <Header darkMode={darkMode} toggleDarkMode={() => setDarkMode(!darkMode)} />
+              {!isAdminRoute &&<Header darkMode={darkMode} toggleDarkMode={() => setDarkMode(!darkMode)} />}
               <CssBaseline />
               {children}
-              <Footer />
+              {!isAdminRoute &&<Footer />}
             </ReduxProvider>
           </ThemeProvider>
         </AppRouterCacheProvider>

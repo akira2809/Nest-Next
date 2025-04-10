@@ -19,6 +19,7 @@ import { useDispatch } from "react-redux";
 import { addToCart } from "@/redux/slices/cartSlice";
 import Swal from "sweetalert2";
 
+
 interface Product {
   product_id: number;
   name: string;
@@ -220,18 +221,6 @@ export default function ProductItem({ product }: ProductItemProps) {
           </Tooltip>
           <Tooltip title="Thêm vào giỏ hàng">
   <div
-    onClick={() => {
-      dispatch(addToCart(product));
-      Swal.fire({
-        icon: "success",
-        title: "Đã thêm vào giỏ hàng!",
-        text: `${product.name} đã được thêm vào giỏ hàng.`,
-        showConfirmButton: false,
-        timer: 1500,
-        timerProgressBar: true,
-      });
-    }}
-    style={{ cursor: "pointer" }}
   >
     <IconButton
       sx={{

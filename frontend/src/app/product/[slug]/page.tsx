@@ -2,6 +2,7 @@ import ProductDetail from "@/components/ProductDetail";
 import { notFound } from "next/navigation";
 
 interface Product {
+    slug: string;
     id: string;
     name: string;
     main_image: string;
@@ -9,8 +10,8 @@ interface Product {
     description: string;
     colors: string[];
     sizes: string[];
-    sale_price?: number
-    product_variants: any[]
+    sale_price?: number;
+    product_variants: any[];
 }
 
 type Params = {
@@ -19,7 +20,7 @@ type Params = {
 
 async function getProduct(slug: string): Promise<Product | null> {
     try {
-        const res = await fetch(`http://localhost:3001/product/slug/${slug}`);
+        const res = await fetch(`http://localhost:3001/products/slug/${slug}`);
         if (!res.ok) return null;
         return res.json();
     } catch (error) {

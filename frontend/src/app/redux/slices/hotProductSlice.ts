@@ -24,7 +24,7 @@ const initialState: ProductState = {
 
 // Gọi API lấy sản phẩm HOT
 export const fetchHotProducts = createAsyncThunk("products/fetchHot", async () => {
-    const response = await fetch("http://localhost:3001/product/hot/hot");
+    const response = await fetch("http://localhost:3001/products/");
     if (!response.ok) throw new Error("Lỗi khi lấy sản phẩm HOT");
     return (await response.json()) as Product[];
 });

@@ -16,9 +16,12 @@
     "@mui/material-nextjs": "^6.4.3",
     "axios": "^1.8.2",
     "next": "15.2.2",
+    "next-redux-wrapper": "^8.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.55.0",
     "react-slick": "^0.30.3",
+    "recharts": "^2.15.2",
     "slick-carousel": "^1.8.1",
     "sweetalert2": "^11.17.2"
   },

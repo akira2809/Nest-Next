@@ -29,6 +29,8 @@ import {
   MenuList,
   MenuItem,
   Divider,
+  Chip,
+  Stack,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
@@ -39,11 +41,14 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { removeFromCart, updateQuantity } from "@/redux/slices/cartSlice";
+import {
+  removeFromCart,
+  increaseQuantity,
+  decreaseQuantity,
+} from "@/redux/slices/cartSlice";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import Swal from "sweetalert2";
-
 // Thêm import này cho action xóa item
 
 interface HeaderProps {
@@ -60,7 +65,9 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
   const [aoAnchorEl, setAoAnchorEl] = useState<null | HTMLElement>(null);
   const [quanAnchorEl, setQuanAnchorEl] = useState<null | HTMLElement>(null);
   // Sử dụng Redux để lấy giỏ hàng
-  const cartItems = useSelector((state: RootState) => state.cart.items);
+  const { items: cartItems, totalPrice } = useSelector(
+    (state: RootState) => state.cart
+  );
   const dispatch = useDispatch(); // Thêm dispatch để sử dụng cho removeFromCart
 
   useEffect(() => {
@@ -83,8 +90,18 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
     });
   };
   // Thêm hàm xóa item khỏi giỏ hàng
-  const removeItemFromCart = (itemId: number) => {
-    dispatch(removeFromCart(itemId));
+  const removeItemFromCart = (
+    productId: number,
+    colorId: number,
+    sizeId: number
+  ) => {
+    dispatch(
+      removeFromCart({
+        product_id: productId,
+        color_id: colorId,
+        size_id: sizeId,
+      })
+    );
   };
 
   // Thêm hàm xử lý thanh toán
@@ -94,12 +111,33 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
   };
 
   // Trong component Header, thêm hàm này
-  const handleUpdateQuantity = (productId: number, quantity: number) => {
-    if (quantity <= 0) {
-      dispatch(removeFromCart(productId)); // Nếu số lượng <= 0, xóa sản phẩm
-    } else {
-      dispatch(updateQuantity({ productId, quantity }));
-    }
+  const handleIncreaseQuantity = (
+    productId: number,
+    colorId: number,
+    sizeId: number
+  ) => {
+    dispatch(
+      increaseQuantity({
+        product_id: productId,
+        color_id: colorId,
+        size_id: sizeId,
+      })
+    );
+  };
+
+  // Thêm hàm giảm số lượng sản phẩm
+  const handleDecreaseQuantity = (
+    productId: number,
+    colorId: number,
+    sizeId: number
+  ) => {
+    dispatch(
+      decreaseQuantity({
+        product_id: productId,
+        color_id: colorId,
+        size_id: sizeId,
+      })
+    );
   };
 
   // Dropdown handlers for Áo
@@ -447,7 +485,7 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
               <List sx={{ maxHeight: "60vh", overflow: "auto", mb: 2 }}>
                 {cartItems.map((item) => (
                   <ListItem
-                    key={item.product_id}
+                    key={`${item.product_id}-${item.color_id}-${item.size_id}`}
                     sx={{
                       display: "flex",
                       flexDirection: "column",
@@ -478,19 +516,51 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
                         >
                           {item.name}
                         </Typography>
+
+                        {/* Hiển thị màu và kích thước */}
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          sx={{ mt: 0.5, mb: 0.5 }}
+                        >
+                          {item.color_name && (
+                            <Chip
+                              label={`Màu: ${item.color_name}`}
+                              size="small"
+                              sx={{ height: 20, fontSize: "0.7rem" }}
+                            />
+                          )}
+                          {item.size_name && (
+                            <Chip
+                              label={`Size: ${item.size_name}`}
+                              size="small"
+                              sx={{ height: 20, fontSize: "0.7rem" }}
+                            />
+                          )}
+                        </Stack>
+
                         <Typography variant="body2" color="text.secondary">
-                          {parseFloat(item.base_price).toLocaleString()} VND
+                          {item.sale_price
+                            ? parseFloat(item.sale_price).toLocaleString()
+                            : parseFloat(item.base_price).toLocaleString()}{" "}
+                          VND
                         </Typography>
                       </Box>
                       <IconButton
                         size="small"
-                        onClick={() => removeItemFromCart(item.product_id)}
+                        onClick={() =>
+                          removeItemFromCart(
+                            item.product_id,
+                            item.color_id,
+                            item.size_id
+                          )
+                        }
                       >
                         <DeleteOutlineIcon fontSize="small" />
                       </IconButton>
                     </Box>
 
-                    {/* Quantity controls */}
+                    {/* Quantity controls - Updated with new handlers */}
                     <Box
                       sx={{
                         display: "flex",
@@ -502,9 +572,10 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
                       <IconButton
                         size="small"
                         onClick={() =>
-                          handleUpdateQuantity(
+                          handleDecreaseQuantity(
                             item.product_id,
-                            item.quantity - 1
+                            item.color_id,
+                            item.size_id
                           )
                         }
                         disabled={item.quantity <= 1}
@@ -521,9 +592,10 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
                       <IconButton
                         size="small"
                         onClick={() =>
-                          handleUpdateQuantity(
+                          handleIncreaseQuantity(
                             item.product_id,
-                            item.quantity + 1
+                            item.color_id,
+                            item.size_id
                           )
                         }
                       >
@@ -536,7 +608,7 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
 
               <Divider sx={{ my: 2 }} />
 
-              {/* Cart Summary */}
+              {/* Cart Summary - Using totalPrice from redux */}
               <Box sx={{ mb: 3 }}>
                 <Box
                   sx={{
@@ -547,14 +619,7 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
                 >
                   <Typography variant="body1">Subtotal:</Typography>
                   <Typography variant="body1">
-                    {cartItems
-                      .reduce(
-                        (total, item) =>
-                          total + parseFloat(item.base_price) * item.quantity,
-                        0
-                      )
-                      .toLocaleString()}{" "}
-                    VND
+                    {totalPrice.toLocaleString()} VND
                   </Typography>
                 </Box>
 
@@ -569,14 +634,7 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
                     Total:
                   </Typography>
                   <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                    {cartItems
-                      .reduce(
-                        (total, item) =>
-                          total + parseFloat(item.base_price) * item.quantity,
-                        0
-                      )
-                      .toLocaleString()}{" "}
-                    VND
+                    {totalPrice.toLocaleString()} VND
                   </Typography>
                 </Box>
               </Box>
