@@ -41,6 +41,7 @@ interface Product {
   sizes: string[];
   sale_price?: number;
   product_variants: any[];
+  stock: number;
 }
 
 interface ProductDetailProps {
@@ -53,64 +54,154 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   const [selectedSizeId, setSelectedSizeId] = useState<number | null>(null);
   const [selectedSizeName, setSelectedSizeName] = useState<string | null>(null);
   const [selectedColorId, setSelectedColorId] = useState<number | null>(null);
-  const [selectedColorName, setSelectedColorName] = useState<string | null>(null);
+  const [selectedColorName, setSelectedColorName] = useState<string | null>(
+    null
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  // Thêm state mới để lưu trữ các sizes khả dụng dựa trên màu đã chọn
-  const [availableSizes, setAvailableSizes] = useState<any[]>([]);
+  // Thêm state mới để lưu trữ các màu khả dụng dựa trên size đã chọn
+  const [availableColors, setAvailableColors] = useState<any[]>([]);
+
+  const [currentStock, setCurrentStock] = useState<number | null>(null);
+
+  // Thêm state để đếm tổng số lượng màu cho mỗi size
+  const [colorCountBySize, setColorCountBySize] = useState<number>(0);
+  // Đếm số lượng variant cho màu đã chọn
+  const [variantCountByColor, setVariantCountByColor] = useState<number>(0);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const dispatch = useDispatch();
 
-  // Hàm xử lý cập nhật các sizes có sẵn khi chọn màu
+  // Hàm xử lý cập nhật các màu có sẵn khi chọn size
   useEffect(() => {
-    if (selectedColorId) {
-      // Lọc ra các biến thể sản phẩm có color_id trùng với màu đã chọn
-      const sizesForSelectedColor = product.product_variants.filter(
-        variant => variant.color_id === selectedColorId
+    if (selectedSizeId) {
+      // Lọc ra các biến thể sản phẩm có size_id trùng với size đã chọn
+      const colorsForSelectedSize = product.product_variants.filter(
+        (variant) => variant.size_id === selectedSizeId
       );
-      
-      setAvailableSizes(sizesForSelectedColor);
-      
-      // Reset size selection if the previously selected size is no longer available
-      if (selectedSizeId) {
-        const sizeStillAvailable = sizesForSelectedColor.some(
-          variant => variant.size_id === selectedSizeId
+
+      setAvailableColors(colorsForSelectedSize);
+
+      // Đếm số lượng màu khả dụng cho size này
+      const uniqueColors = new Set(
+        colorsForSelectedSize.map((variant) => variant.color_id)
+      );
+      setColorCountBySize(uniqueColors.size);
+
+      // Tính tổng số lượng tồn kho cho size đã chọn
+      const totalStockForSize = colorsForSelectedSize.reduce(
+        (total, variant) => total + (variant.quantity || 0),
+        0
+      );
+      setCurrentStock(totalStockForSize);
+
+      // Reset color selection if the previously selected color is no longer available
+      if (selectedColorId) {
+        const colorStillAvailable = colorsForSelectedSize.some(
+          (variant) => variant.color_id === selectedColorId
         );
-        
-        if (!sizeStillAvailable) {
-          setSelectedSizeId(null);
-          setSelectedSizeName(null);
+
+        if (!colorStillAvailable) {
+          setSelectedColorId(null);
+          setSelectedColorName(null);
+          setVariantCountByColor(0);
         }
       }
     } else {
-      // Nếu chưa chọn màu, không có size nào khả dụng
-      setAvailableSizes([]);
+      // Nếu chưa chọn size, không có màu nào khả dụng
+      setAvailableColors([]);
+      setColorCountBySize(0);
+      setCurrentStock(null); // Không có stock nếu chưa chọn size
     }
-  }, [selectedColorId, product.product_variants, selectedSizeId]);
+  }, [selectedSizeId, product.product_variants, selectedColorId]);
+
+  // Tính số lượng tồn kho khi chọn màu và size
+  useEffect(() => {
+    // Nếu đã chọn size + color → hiển thị stock theo cặp size + color
+    if (selectedSizeId && selectedColorId) {
+      const selectedVariants = product.product_variants.filter(
+        (variant) =>
+          variant.size_id === selectedSizeId &&
+          variant.color_id === selectedColorId
+      );
+      const stock = selectedVariants.reduce(
+        (total, variant) => total + (variant.stock || 0),
+        0
+      );
+      setCurrentStock(stock);
+    }
+    // Nếu chỉ chọn size → hiển thị tổng stock của size đó
+    else if (selectedSizeId && !selectedColorId) {
+      const selectedVariants = product.product_variants.filter(
+        (variant) => variant.size_id === selectedSizeId
+      );
+      const stock = selectedVariants.reduce(
+        (total, variant) => total + (variant.stock || 0),
+        0
+      );
+      setCurrentStock(stock);
+    }
+    // Nếu chưa chọn gì → hiện tổng stock toàn bộ
+    else {
+      const totalStock = product.product_variants.reduce(
+        (total, variant) => total + (variant.stock || 0),
+        0
+      );
+      setCurrentStock(totalStock);
+    }
+  }, [selectedSizeId, selectedColorId, product.product_variants]);
+
+  // Update stock based on selected size and color
+  useEffect(() => {
+    if (selectedSizeId && selectedColorId) {
+      const selectedVariants = product.product_variants.filter(
+        (variant) =>
+          variant.size_id === selectedSizeId &&
+          variant.color_id === selectedColorId
+      );
+
+      const totalStock = selectedVariants.reduce(
+        (total, variant) => total + (variant.stock || 0),
+        0
+      );
+
+      setCurrentStock(totalStock); // Update stock based on selected size and color
+    }
+  }, [selectedSizeId, selectedColorId, product.product_variants]);
+
+  useEffect(() => {
+    if (product.product_variants) {
+      // Tính tổng tồn kho của tất cả các biến thể (size + color)
+      const totalStock = product.product_variants.reduce(
+        (total, variant) => total + (variant.stock || 0),
+        0
+      );
+      setCurrentStock(totalStock); // Cập nhật tồn kho tổng
+    }
+  }, [product.product_variants]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setSelectedTabIndex(newValue);
   };
 
   const handleAddToCart = async () => {
-    if (!selectedColorId || !selectedSizeId) {
-      setErrorMessage("Vui lòng chọn màu và kích thước!");
+    if (!selectedSizeId || !selectedColorId) {
+      setErrorMessage("Vui lòng chọn kích thước và màu sắc!");
       return;
     }
 
     setErrorMessage(null);
 
     try {
-      console.log(product)
       const queryParams = new URLSearchParams({
         product_id: product.product_id,
         color_id: selectedColorId.toString(),
         size_id: selectedSizeId.toString(),
       });
 
-      const res = await fetch(`http://localhost:3001/products/product_variant?${queryParams}`);
-      console.log(`http://localhost:3001/products/product_variant?${queryParams}`)
+      const res = await fetch(
+        `http://localhost:3001/products/product_variant?${queryParams}`
+      );
       if (!res.ok) {
         throw new Error("Không tìm thấy biến thể sản phẩm");
       }
@@ -125,6 +216,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         main_image: product.main_image,
         slug: product.slug,
         quantity,
+        stock: variant.stock,
         color_id: selectedColorId,
         size_id: selectedSizeId,
         variant_id: Number(variant.id),
@@ -146,7 +238,9 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   };
 
   const discountPercentage = product.sale_price
-    ? Math.round(((product.base_price - product.sale_price) / product.base_price) * 100)
+    ? Math.round(
+        ((product.base_price - product.sale_price) / product.base_price) * 100
+      )
     : 0;
 
   const displayPrice = product.sale_price || product.base_price;
@@ -188,7 +282,12 @@ export default function ProductDetail({ product }: ProductDetailProps) {
               <Chip
                 label={`-${discountPercentage}%`}
                 color="error"
-                sx={{ position: "absolute", top: 16, left: 16, fontWeight: "bold" }}
+                sx={{
+                  position: "absolute",
+                  top: 16,
+                  left: 16,
+                  fontWeight: "bold",
+                }}
               />
             )}
           </Paper>
@@ -200,13 +299,17 @@ export default function ProductDetail({ product }: ProductDetailProps) {
               <Typography variant="h4" fontWeight="500">
                 {product.name}
               </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}
+              >
                 <Rating value={4.5} precision={0.5} readOnly size="small" />
                 <Typography variant="body2" color="text.secondary">
                   (12 đánh giá)
                 </Typography>
               </Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2, my: 2 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 2, my: 2 }}
+              >
                 <Typography variant="h5" color="error.main" fontWeight="600">
                   {displayPrice.toLocaleString()}₫
                 </Typography>
@@ -226,35 +329,67 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
             <Box>
               <Typography variant="subtitle1" fontWeight="500" gutterBottom>
-                Màu sắc
+                Kích thước
               </Typography>
-              <ColorSelect
-                colors={product.product_variants}
-                onColorSelect={({ color_id, color_name }) => {
-                  setSelectedColorId(color_id);
-                  setSelectedColorName(color_name);
+
+              <SizeSelect
+                sizes={product.product_variants}
+                onSizeSelect={({ size_id, size_name }) => {
+                  setSelectedSizeId(size_id);
+                  setSelectedSizeName(size_name);
                 }}
               />
+              {currentStock !== null && selectedSizeId && !selectedColorId && (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 1 }}
+                >
+                  Còn {currentStock} sản phẩm trong size này
+                </Typography>
+              )}
             </Box>
 
             <Box>
               <Typography variant="subtitle1" fontWeight="500" gutterBottom>
-                Kích thước
+                Màu sắc
               </Typography>
-              {selectedColorId ? (
-                <SizeSelect
-                  sizes={availableSizes} // Chỉ truyền các sizes có sẵn cho màu đã chọn
-                  onSizeSelect={({ size_id, size_name }) => {
-                    setSelectedSizeId(size_id);
-                    setSelectedSizeName(size_name);
-                  }}
-                />
+              {selectedSizeId ? (
+                <>
+                  <ColorSelect
+                    colors={availableColors}
+                    onColorSelect={({ color_id, color_name }) => {
+                      setSelectedColorId(color_id);
+                      setSelectedColorName(color_name);
+                    }}
+                  />
+                  {currentStock !== null &&
+                    selectedSizeId &&
+                    selectedColorId && (
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mt: 0.5 }}
+                      >
+                        Còn {currentStock} sản phẩm với màu và size đã chọn
+                      </Typography>
+                    )}
+                </>
               ) : (
                 <Typography variant="body2" color="text.secondary">
-                  Vui lòng chọn màu trước
+                  Vui lòng chọn kích thước trước
                 </Typography>
               )}
             </Box>
+            {currentStock !== null && (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 0.5 }}
+              >
+                {/* Còn {currentStock} sản phẩm trong kho */}
+              </Typography>
+            )}
 
             <Box>
               <Typography variant="subtitle1" fontWeight="500" gutterBottom>
@@ -270,7 +405,10 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                 >
                   -
                 </Button>
-                <Typography variant="body1" sx={{ mx: 2, width: "40px", textAlign: "center" }}>
+                <Typography
+                  variant="body1"
+                  sx={{ mx: 2, width: "40px", textAlign: "center" }}
+                >
                   {quantity}
                 </Typography>
                 <Button
@@ -284,19 +422,36 @@ export default function ProductDetail({ product }: ProductDetailProps) {
               </Box>
             </Box>
 
+            {currentStock !== null && !selectedSizeId && (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 0.5 }}
+              >
+                Tổng số sản phẩm trong kho: {currentStock} sản phẩm
+              </Typography>
+            )}
+
+            {/* Các phần còn lại */}
             {errorMessage && (
               <Typography color="error" sx={{ mt: 1 }}>
                 ⚠️ {errorMessage}
               </Typography>
             )}
 
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 4 }}>
+            {/* Các nút hành động */}
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={2}
+              sx={{ mt: 4 }}
+            >
               <Button
                 variant="contained"
                 size="large"
                 fullWidth
                 startIcon={<ShoppingCartIcon />}
                 onClick={handleAddToCart}
+                disabled={!selectedSizeId || !selectedColorId}
                 sx={{
                   bgcolor: "#c21935",
                   "&:hover": { bgcolor: "#951329" },
@@ -333,7 +488,9 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                 </Box>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <AssignmentReturnOutlinedIcon color="action" />
-                  <Typography variant="body2">Đổi trả miễn phí trong vòng 30 ngày</Typography>
+                  <Typography variant="body2">
+                    Đổi trả miễn phí trong vòng 30 ngày
+                  </Typography>
                 </Box>
               </Stack>
             </Box>
