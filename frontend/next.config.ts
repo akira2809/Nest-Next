@@ -1,10 +1,15 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
-    domains: ['file.hstatic.net', 'product.hstatic.net']
-  }
+    domains: [
+      'file.hstatic.net',
+      'product.hstatic.net',
+      'owen.cdn.vccloud.vn',
+      'dosi-in.com',
+      "i.ytimg.com", // Thêm domain này
+      'res.cloudinary.com'
+    ],
+  },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

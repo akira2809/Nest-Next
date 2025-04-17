@@ -15,7 +15,6 @@ export default function BlockProduct() {
 
             </Box>
             <ProductItem />
-            <ProductItem />
         </Box>
     );
 }
