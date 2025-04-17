@@ -1,4 +1,6 @@
-import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+// src/redux/slices/productSlice.ts
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import axiosClient from '@/api/axiosClient';
 
 interface Product {
   id: number;
@@ -39,94 +41,81 @@ const initialState: ProductState = {
   selectedCategory: '',
   priceRange: {
     min: 0,
-    max: 1000000
+    max: 1000000,
   },
   loading: false,
   error: null,
 };
 
-// Async thunk to fetch all products
-export const fetchAllProducts = createAsyncThunk(
-  'product/fetchAllProducts',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await fetch('http://localhost:3001/product');
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
-      }
-      const productData = await response.json();
-      return productData;
-    } catch (error) {
-      return rejectWithValue((error as Error).message);
-    }
+// 🧃 Fetch data
+export const fetchAllProducts = createAsyncThunk('product/fetchAll', async (_, { rejectWithValue }) => {
+  try {
+    const res = await axiosClient.get('/products');
+    return res.data;
+  } catch (err: any) {
+    return rejectWithValue(err.message);
   }
-);
+});
 
-// Async thunk to fetch products by category
-export const fetchProductsByCategory = createAsyncThunk(
-  'product/fetchProductsByCategory',
-  async (categoryId: string, { rejectWithValue }) => {
-    try {
-      const response = await fetch(`http://localhost:3001/category/${categoryId}/product`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch products');
-      }
-      const productData = await response.json();
-      return productData;
-    } catch (error) {
-      return rejectWithValue((error as Error).message);
-    }
+export const fetchCategories = createAsyncThunk('product/fetchCategories', async (_, { rejectWithValue }) => {
+  try {
+    const res = await axiosClient.get('/categories');
+    return res.data;
+  } catch (err: any) {
+    return rejectWithValue(err.message);
   }
-);
+});
 
-// Async thunk to fetch categories
-export const fetchCategories = createAsyncThunk(
-  'product/fetchCategories',
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await fetch('http://localhost:3001/category/');
-      if (!response.ok) {
-        throw new Error('Failed to fetch categories');
-      }
-      const categoryData = await response.json();
-      return categoryData;
-    } catch (error) {
-      return rejectWithValue((error as Error).message);
-    }
-  }
-);
-
-// Async thunk to filter products based on category and price
 export const filterProducts = createAsyncThunk(
   'product/filterProducts',
   async (params: FilterParams, { getState }) => {
     const { products } = (getState() as { product: ProductState }).product;
     const { category, minPrice, maxPrice } = params;
-    
-    return products.filter((product) => {
-      const categoryMatch = category ? product.category === category : true;
-      const priceMatch = product.price >= minPrice && product.price <= maxPrice;
-      return categoryMatch && priceMatch;
-    });
+
+    return products.filter(
+      (p) =>
+        (!category || p.category === category) &&
+        p.price >= minPrice &&
+        p.price <= maxPrice
+    );
   }
 );
+
+// 🧃 CRUD Product
+export const addProduct = createAsyncThunk('product/add', async (product: Omit<Product, 'id'>, { rejectWithValue }) => {
+  try {
+    const res = await axiosClient.post('/products', product);
+    return res.data;
+  } catch (err: any) {
+    return rejectWithValue(err.message);
+  }
+});
+
+export const updateProduct = createAsyncThunk(
+  'product/update',
+  async ({ id, data }: { id: number; data: Partial<Product> }, { rejectWithValue }) => {
+    try {
+      const res = await axiosClient.patch(`/products/${id}`, data);
+      return res.data;
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+export const deleteProduct = createAsyncThunk('product/delete', async (id: number, { rejectWithValue }) => {
+  try {
+    await axiosClient.delete(`/products/${id}`);
+    return id;
+  } catch (err: any) {
+    return rejectWithValue(err.message);
+  }
+});
 
 const productSlice = createSlice({
   name: 'product',
   initialState,
   reducers: {
-    filterByCategory: (state, action: PayloadAction<string>) => {
-      state.selectedCategory = action.payload;
-      if (action.payload) {
-        state.loading = true;
-        // Fetch products by category
-        fetchProductsByCategory(action.payload);
-      } else {
-        state.loading = true;
-        // Fetch all products
-        fetchAllProducts();
-      }
-    },
     resetFilter: (state) => {
       state.selectedCategory = '';
       state.priceRange = { min: 0, max: 1000000 };
@@ -135,24 +124,8 @@ const productSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch categories
-      .addCase(fetchCategories.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchCategories.fulfilled, (state, action) => {
-        state.categories = action.payload;
-        state.loading = false;
-      })
-      .addCase(fetchCategories.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-      
-      // Fetch all products
       .addCase(fetchAllProducts.pending, (state) => {
         state.loading = true;
-        state.error = null;
       })
       .addCase(fetchAllProducts.fulfilled, (state, action) => {
         state.products = action.payload;
@@ -163,36 +136,36 @@ const productSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
-      // Fetch products by category
-      .addCase(fetchProductsByCategory.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+
+      .addCase(fetchCategories.fulfilled, (state, action) => {
+        state.categories = action.payload;
       })
-      .addCase(fetchProductsByCategory.fulfilled, (state, action) => {
-        state.products = action.payload;
-        state.filteredProducts = action.payload;
-        state.loading = false;
-      })
-      .addCase(fetchProductsByCategory.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-      
-      // Filter products based on category and price
-      .addCase(filterProducts.pending, (state) => {
-        state.loading = true;
-      })
+
       .addCase(filterProducts.fulfilled, (state, action) => {
         state.filteredProducts = action.payload;
-        state.loading = false;
       })
-      .addCase(filterProducts.rejected, (state) => {
-        state.loading = false;
-        state.error = 'Failed to apply filter';
+
+      // Add Product
+      .addCase(addProduct.fulfilled, (state, action) => {
+        state.products.push(action.payload);
+        state.filteredProducts.push(action.payload);
+      })
+
+      // Update Product
+      .addCase(updateProduct.fulfilled, (state, action) => {
+        const updated = action.payload;
+        state.products = state.products.map((p) => (p.id === updated.id ? updated : p));
+        state.filteredProducts = state.filteredProducts.map((p) => (p.id === updated.id ? updated : p));
+      })
+
+      // Delete Product
+      .addCase(deleteProduct.fulfilled, (state, action) => {
+        const id = action.payload;
+        state.products = state.products.filter((p) => p.id !== id);
+        state.filteredProducts = state.filteredProducts.filter((p) => p.id !== id);
       });
-  }
+  },
 });
 
-export const { filterByCategory, resetFilter } = productSlice.actions;
+export const { resetFilter } = productSlice.actions;
 export default productSlice.reducer;

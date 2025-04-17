@@ -1,5 +1,3 @@
-"use client";
-
 import {
   useState,
   useEffect,
@@ -41,6 +39,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { useRouter } from "next/navigation";
 import {
   removeFromCart,
   increaseQuantity,
@@ -60,10 +59,11 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [scrolling, setScrolling] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState("");
   const [aoAnchorEl, setAoAnchorEl] = useState<null | HTMLElement>(null);
   const [quanAnchorEl, setQuanAnchorEl] = useState<null | HTMLElement>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [userName, setUserName] = useState<string>("");
+  const router = useRouter();
   // Sử dụng Redux để lấy giỏ hàng
   const { items: cartItems, totalPrice } = useSelector(
     (state: RootState) => state.cart
@@ -76,19 +76,57 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      handleLogin();
+    }
+  }, []);
+
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
   const toggleCart = () => setCartOpen(!cartOpen);
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    setUserName("Doan Phan Kinh Kha");
+  const handleLogin = async () => {
+    try {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        router.push("/login"); // Chuyển hướng đến trang đăng nhập
+        return;
+      }
+
+      const response = await fetch("http://localhost:3001/auth/profile", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error("Không thể lấy thông tin người dùng");
+
+      const data = await response.json();
+      const nameFromAPI = data.username || data.name || "User";
+
+      setIsLoggedIn(true);
+      setUserName(nameFromAPI);
+    } catch (error: any) {
+      console.error(error);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    setIsLoggedIn(false);
+    setUserName("");
+
     Swal.fire({
-      title: "Chào mừng!",
-      text: "Xin chào bạn Kha đẹp trai!!!.",
-      icon: "success",
-      confirmButtonText: "Đóng",
+      title: "Đăng xuất",
+      text: "Bạn đã đăng xuất thành công.",
+      icon: "info",
+      confirmButtonText: "OK",
     });
   };
+
   // Thêm hàm xóa item khỏi giỏ hàng
   const removeItemFromCart = (
     productId: number,
@@ -350,21 +388,22 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
             </Badge>
           </IconButton>
 
-          {/* Login / Profile */}
           {isLoggedIn ? (
-            <Box sx={{ display: "flex", alignItems: "center", ml: 2 }}>
-              <Avatar sx={{ bgcolor: "primary.main", width: 30, height: 30 }}>
-                {userName[0]}
-              </Avatar>
-              <Typography
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Avatar sx={{ bgcolor: "primary.main" }}>{userName[0]}</Avatar>
+              {/* <Typography>{userName}</Typography> */}
+              <Button
+                variant="outlined"
                 sx={{
-                  ml: 1,
-                  fontWeight: "bold",
+                  borderRadius: "20px",
+                  borderColor: darkMode ? "white" : "black",
                   color: darkMode ? "white" : "black",
+                  ml: 2,
                 }}
+                onClick={handleLogout}
               >
-                {userName}
-              </Typography>
+                Logout
+              </Button>
             </Box>
           ) : (
             <Button
@@ -380,7 +419,6 @@ export default function Header({ darkMode, toggleDarkMode }: HeaderProps) {
               Đăng nhập
             </Button>
           )}
-
           {/* Dark Mode Toggle */}
           <IconButton
             onClick={toggleDarkMode}

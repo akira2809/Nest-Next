@@ -185,6 +185,13 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   };
 
   const handleAddToCart = async () => {
+
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      alert("⚠️ Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!");
+      return;
+    }
+
     if (!selectedSizeId || !selectedColorId) {
       setErrorMessage("Vui lòng chọn kích thước và màu sắc!");
       return;
