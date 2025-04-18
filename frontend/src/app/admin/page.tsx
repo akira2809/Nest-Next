@@ -36,11 +36,11 @@ import {
   Error,
   Schedule,
 } from '@mui/icons-material'
-import { 
-  PieChart, 
-  Pie, 
-  Cell, 
-  Tooltip, 
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -149,8 +149,8 @@ const AdminDashboardPage = () => {
       <Grid container spacing={3}>
         {/* Card Thống kê */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ 
-            borderRadius: 2, 
+          <Card sx={{
+            borderRadius: 2,
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             transition: 'transform 0.2s',
             '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }
@@ -161,13 +161,13 @@ const AdminDashboardPage = () => {
                   <People sx={{ color: theme.palette.primary.main }} />
                 </Avatar>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography 
-                    variant="body2" 
+                  <Typography
+                    variant="body2"
                     color={summary.stats.userGrowth >= 0 ? "success.main" : "error.main"}
                     sx={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}
                   >
-                    {summary.stats.userGrowth >= 0 ? 
-                      <ArrowUpward fontSize="small" sx={{ mr: 0.5 }} /> : 
+                    {summary.stats.userGrowth >= 0 ?
+                      <ArrowUpward fontSize="small" sx={{ mr: 0.5 }} /> :
                       <ArrowDownward fontSize="small" sx={{ mr: 0.5 }} />}
                     {Math.abs(summary.stats.userGrowth)}%
                   </Typography>
@@ -182,10 +182,10 @@ const AdminDashboardPage = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ 
-            borderRadius: 2, 
+          <Card sx={{
+            borderRadius: 2,
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             transition: 'transform 0.2s',
             '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }
@@ -196,13 +196,13 @@ const AdminDashboardPage = () => {
                   <ShoppingCart sx={{ color: theme.palette.secondary.main }} />
                 </Avatar>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography 
-                    variant="body2" 
+                  <Typography
+                    variant="body2"
                     color={summary.stats.orderGrowth >= 0 ? "success.main" : "error.main"}
                     sx={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}
                   >
-                    {summary.stats.orderGrowth >= 0 ? 
-                      <ArrowUpward fontSize="small" sx={{ mr: 0.5 }} /> : 
+                    {summary.stats.orderGrowth >= 0 ?
+                      <ArrowUpward fontSize="small" sx={{ mr: 0.5 }} /> :
                       <ArrowDownward fontSize="small" sx={{ mr: 0.5 }} />}
                     {Math.abs(summary.stats.orderGrowth)}%
                   </Typography>
@@ -217,10 +217,10 @@ const AdminDashboardPage = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ 
-            borderRadius: 2, 
+          <Card sx={{
+            borderRadius: 2,
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             transition: 'transform 0.2s',
             '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }
@@ -231,13 +231,13 @@ const AdminDashboardPage = () => {
                   <Inventory2 sx={{ color: theme.palette.success.main }} />
                 </Avatar>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography 
-                    variant="body2" 
+                  <Typography
+                    variant="body2"
                     color={summary.stats.productGrowth >= 0 ? "success.main" : "error.main"}
                     sx={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}
                   >
-                    {summary.stats.productGrowth >= 0 ? 
-                      <ArrowUpward fontSize="small" sx={{ mr: 0.5 }} /> : 
+                    {summary.stats.productGrowth >= 0 ?
+                      <ArrowUpward fontSize="small" sx={{ mr: 0.5 }} /> :
                       <ArrowDownward fontSize="small" sx={{ mr: 0.5 }} />}
                     {Math.abs(summary.stats.productGrowth)}%
                   </Typography>
@@ -252,10 +252,10 @@ const AdminDashboardPage = () => {
             </CardContent>
           </Card>
         </Grid>
-        
+
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ 
-            borderRadius: 2, 
+          <Card sx={{
+            borderRadius: 2,
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             transition: 'transform 0.2s',
             '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }
@@ -266,13 +266,13 @@ const AdminDashboardPage = () => {
                   <AttachMoney sx={{ color: theme.palette.warning.main }} />
                 </Avatar>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography 
-                    variant="body2" 
+                  <Typography
+                    variant="body2"
                     color={summary.stats.revenueGrowth >= 0 ? "success.main" : "error.main"}
                     sx={{ display: 'flex', alignItems: 'center', fontWeight: 600 }}
                   >
-                    {summary.stats.revenueGrowth >= 0 ? 
-                      <ArrowUpward fontSize="small" sx={{ mr: 0.5 }} /> : 
+                    {summary.stats.revenueGrowth >= 0 ?
+                      <ArrowUpward fontSize="small" sx={{ mr: 0.5 }} /> :
                       <ArrowDownward fontSize="small" sx={{ mr: 0.5 }} />}
                     {Math.abs(summary.stats.revenueGrowth)}%
                   </Typography>
@@ -302,24 +302,24 @@ const AdminDashboardPage = () => {
             <ResponsiveContainer width="100%" height={320}>
               <LineChart data={revenueData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                <XAxis 
-                  dataKey="name" 
+                <XAxis
+                  dataKey="name"
                   tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
                   axisLine={{ stroke: theme.palette.divider }}
                 />
-                <YAxis 
-                  tickFormatter={(value) => `${value/1000000}tr`}
+                <YAxis
+                  tickFormatter={(value) => `${value / 1000000}tr`}
                   tick={{ fill: theme.palette.text.secondary, fontSize: 12 }}
                   axisLine={{ stroke: theme.palette.divider }}
                 />
-                <Tooltip 
+                <Tooltip
                   formatter={(value: number) => [`${value.toLocaleString()}đ`, 'Doanh thu']}
                   contentStyle={{ backgroundColor: theme.palette.background.paper, borderRadius: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke={theme.palette.primary.main} 
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke={theme.palette.primary.main}
                   strokeWidth={2}
                   dot={{ fill: theme.palette.primary.main, strokeWidth: 2, r: 4 }}
                   activeDot={{ r: 6, strokeWidth: 0 }}
@@ -357,7 +357,7 @@ const AdminDashboardPage = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value) => [`${value} đơn hàng`, '']}
                     contentStyle={{ backgroundColor: theme.palette.background.paper, borderRadius: 4, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
                   />
@@ -399,7 +399,7 @@ const AdminDashboardPage = () => {
                         size="small"
                         label={order.status}
                         icon={getStatusIcon(order.status) || undefined}
-                        sx={{ 
+                        sx={{
                           backgroundColor: `${getStatusColor(order.status)}20`,
                           color: getStatusColor(order.status),
                           fontWeight: 500,
@@ -464,19 +464,19 @@ const AdminDashboardPage = () => {
                       {category.products} sản phẩm
                     </Typography>
                   </Box>
-                  <LinearProgress 
-                    variant="determinate" 
-                    value={(category.products / Math.max(...productCategories.map(c => c.products))) * 100} 
-                    sx={{ 
-                      height: 8, 
+                  <LinearProgress
+                    variant="determinate"
+                    value={(category.products / Math.max(...productCategories.map(c => c.products))) * 100}
+                    sx={{
+                      height: 8,
                       borderRadius: 1,
                       backgroundColor: theme.palette.grey[200],
                       '& .MuiLinearProgress-bar': {
                         backgroundColor: category.name === 'Điện thoại' ? theme.palette.primary.main :
-                                         category.name === 'Laptop' ? theme.palette.success.main :
-                                         category.name === 'Máy tính bảng' ? theme.palette.warning.main :
-                                         category.name === 'Phụ kiện' ? theme.palette.secondary.main :
-                                         theme.palette.info.main
+                          category.name === 'Laptop' ? theme.palette.success.main :
+                            category.name === 'Máy tính bảng' ? theme.palette.warning.main :
+                              category.name === 'Phụ kiện' ? theme.palette.secondary.main :
+                                theme.palette.info.main
                       }
                     }}
                   />

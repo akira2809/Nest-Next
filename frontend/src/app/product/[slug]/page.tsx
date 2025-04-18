@@ -1,9 +1,10 @@
+// "use client"
 import ProductDetail from "@/components/ProductDetail";
 import { notFound } from "next/navigation";
 
 interface Product {
     slug: string;
-    id: string;
+    product_id: string;
     name: string;
     main_image: string;
     base_price: number;
@@ -12,6 +13,7 @@ interface Product {
     sizes: string[];
     sale_price?: number;
     product_variants: any[];
+    stock: number
 }
 
 type Params = {
@@ -30,7 +32,8 @@ async function getProduct(slug: string): Promise<Product | null> {
 }
 
 export default async function ProductDetailPage({ params }: { params: Params }) {
-    const product = await getProduct(params.slug);
+    const { slug } = await params
+    const product = await getProduct(slug);
     console.log(product)
     if (!product) return notFound();
 

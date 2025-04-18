@@ -20,44 +20,76 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper as MuiPaper,
+  TablePagination,
+  Chip,
+  Avatar,
+  Tooltip,
+  useTheme,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Alert,
+  Snackbar,
+  MenuItem
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import { useForm } from 'react-hook-form';
+import {
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Visibility as VisibilityIcon,
+  Add as AddIcon,
+  Close as CloseIcon,
+  LocalFireDepartment as HotIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon
+} from '@mui/icons-material';
+import { useForm, Controller } from 'react-hook-form';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '@/redux/store';
-import { addProduct, updateProduct, deleteProduct, fetchAllProducts , fetchCategories } from '@/redux/slices/productSlice';
+import { addProduct, updateProduct, deleteProduct, fetchAllProducts, fetchCategories } from '@/redux/slices/productSlice';
 
 interface ProductFormData {
   name: string;
   type: string;
   base_price: number;
+  sale_price: number;
   description: string;
-  short_description: string;
-  main_image: string;
+  main_image: File | string;
   status: boolean;
   is_hot: boolean;
-  slug: string;
+  category_id: number;
+  main_image_file?: File | null;
 }
 
 const defaultValues: ProductFormData = {
   name: '',
   type: '',
   base_price: 0,
+  sale_price: 0,
   description: '',
-  short_description: '',
   main_image: '',
+  category_id: 0,
   status: true,
   is_hot: false,
-  slug: '',
 };
 
 const AdminProductPage = () => {
+  const theme = useTheme();
   const products = useSelector((state: RootState) => state.product.products);
+  const categories = useSelector((state: RootState) => state.product.categories);
   const dispatch = useDispatch<AppDispatch>();
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [formVisible, setFormVisible] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<number | null>(null);
+  const [snackbar, setSnackbar] = useState<{ open: boolean, message: string, severity: 'success' | 'error' }>({
+    open: false,
+    message: "",
+    severity: "success"
+  });
 
   const {
     register,
@@ -65,53 +97,166 @@ const AdminProductPage = () => {
     reset,
     setValue,
     watch,
-    formState: { errors },
+    control,
+    formState: { errors, isDirty },
   } = useForm<ProductFormData>({ defaultValues });
 
   useEffect(() => {
     dispatch(fetchAllProducts());
+    dispatch(fetchCategories());
   }, [dispatch]);
+  console.log(categories)
+
+  const closeSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   const onSubmit = (data: ProductFormData) => {
-    if (editingIndex !== null) {
-      dispatch(updateProduct({ id: products[editingIndex].id, data }));
-      setEditingIndex(null);
-    } else {
-      dispatch(addProduct(data));
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('type', data.type);
+    formData.append('base_price', data.base_price.toString());
+    formData.append('sale_price', data.sale_price.toString());
+    formData.append('description', data.description);
+    formData.append('category_id', Number(data.category_id) as any);
+
+    // Handle image file properly
+    if (data.main_image instanceof File) {
+      formData.append('main_image', data.main_image);
+    } else if (typeof data.main_image === 'string' && data.main_image.startsWith('http')) {
+      formData.append('main_image_url', data.main_image);
     }
+
+    formData.append('status', data.status ? 'true' : 'false');
+    formData.append('is_hot', data.is_hot ? 'true' : 'false');
+
+    if (editingIndex !== null) {
+      dispatch(updateProduct({ id: products[editingIndex].product_id, data: formData } as any))
+        .then(() => {
+          setSnackbar({
+            open: true,
+            message: "Sản phẩm đã được cập nhật thành công!",
+            severity: "success"
+          });
+          setEditingIndex(null);
+        })
+        .catch(() => {
+          setSnackbar({
+            open: true,
+            message: "Lỗi khi cập nhật sản phẩm!",
+            severity: "error"
+          });
+        });
+    } else {
+      dispatch(addProduct(formData as any))
+        .then(() => {
+          setSnackbar({
+            open: true,
+            message: "Đã thêm sản phẩm mới thành công!",
+            severity: "success"
+          });
+        })
+        .catch(() => {
+          setSnackbar({
+            open: true,
+            message: "Lỗi khi thêm sản phẩm mới!",
+            severity: "error"
+          });
+        });
+    }
+
     reset();
     setFormVisible(false);
   };
 
-  const handleEdit = (index: number) => {
-    const product = products[index];
-    Object.entries(product).forEach(([key, value]) => {
-      setValue(key as keyof ProductFormData, value);
-    });
-    setEditingIndex(index);
-    setFormVisible(true);
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
   };
 
-  const handleDelete = (index: number) => {
-    dispatch(deleteProduct(products[index].id));
-    if (editingIndex === index) {
-      reset();
-      setEditingIndex(null);
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleEdit = (index: number) => {
+    const product: any = products[index];
+    reset(defaultValues);
+    setValue('name', product.name || '');
+    setValue('type', product.type || '');
+    setValue('category_id', Number(product.category_id) || 0);
+    setValue('base_price', Number(product.base_price) || 0);
+    setValue('sale_price', Number(product.sale_price) || 0);
+    setValue('description', product.description || '');
+    setValue('main_image', product.main_image || '');
+    setValue('status', Boolean(product.status));
+    setValue('is_hot', Boolean(product.is_hot));
+    setEditingIndex(index);
+    setFormVisible(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteClick = (index: number) => {
+    setProductToDelete(index);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (productToDelete !== null) {
+      dispatch(deleteProduct(products[productToDelete].product_id))
+        .then(() => {
+          setSnackbar({
+            open: true,
+            message: "Sản phẩm đã được xóa thành công!",
+            severity: "success"
+          });
+
+          if (editingIndex === productToDelete) {
+            reset();
+            setEditingIndex(null);
+            setFormVisible(false);
+          }
+        })
+        .catch(() => {
+          setSnackbar({
+            open: true,
+            message: "Lỗi khi xóa sản phẩm!",
+            severity: "error"
+          });
+        });
     }
+    setDeleteDialogOpen(false);
+    setProductToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setProductToDelete(null);
   };
 
   const preview = watch();
 
+  const handleView = (productId: number) => {
+    // Implement view product detail logic here
+    console.log(`Viewing product ID: ${productId}`);
+    // Could open a modal or navigate to product detail page
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN');
+  };
+
   return (
     <Box p={4}>
       <Typography variant="h4" fontWeight={700} color="primary" gutterBottom>
-        Quản lý sản phẩm siêu chất lượng
+        Quản lý sản phẩm
       </Typography>
 
       <Button
-        variant="outlined"
-        color={formVisible ? 'secondary' : 'primary'}
-        sx={{ mb: 2, borderRadius: 2 }}
+        variant={formVisible ? "outlined" : "contained"}
+        color={formVisible ? "secondary" : "primary"}
+        startIcon={formVisible ? <CloseIcon /> : <AddIcon />}
+        sx={{ mb: 3, borderRadius: 2 }}
         onClick={() => {
           setFormVisible(!formVisible);
           if (formVisible) {
@@ -120,60 +265,258 @@ const AdminProductPage = () => {
           }
         }}
       >
-        {formVisible ? ' Ẩn form' : '➕ Thêm sản phẩm mới'}
+        {formVisible ? 'Ẩn form' : 'Thêm sản phẩm mới'}
       </Button>
 
       {formVisible && (
-        <Paper elevation={3} sx={{ borderRadius: 4, p: 3, mb: 4 }}>
+        <Paper elevation={3} sx={{ borderRadius: 2, p: 3, mb: 4 }}>
+          <Typography variant="h6" fontWeight={600} gutterBottom>
+            {editingIndex !== null ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới'}
+          </Typography>
+
           <form onSubmit={handleSubmit(onSubmit)}>
             <Grid container spacing={4}>
-              <Grid item xs={12} md={6}>
-                <TextField label="Tên sản phẩm" fullWidth {...register('name', { required: 'Tên không được để trống' })} error={!!errors.name} helperText={errors.name?.message} margin="normal" />
-                <TextField label="Loại sản phẩm" fullWidth {...register('type')} margin="normal" />
-                <TextField label="Giá cơ bản (VNĐ)" type="number" fullWidth {...register('base_price', { valueAsNumber: true, required: 'Giá là bắt buộc' })} error={!!errors.base_price} helperText={errors.base_price?.message} margin="normal" />
-                <TextField label="Slug" fullWidth {...register('slug')} margin="normal" />
-                <TextField label="Mô tả ngắn" fullWidth {...register('short_description')} margin="normal" />
-                <TextField label="Mô tả dài" fullWidth multiline rows={4} {...register('description')} margin="normal" />
-                <Button variant="outlined" component="label" fullWidth sx={{ mt: 2 }}>
-                  Upload ảnh chính
-                  <input
-                    type="file"
-                    hidden
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                          setValue('main_image', reader.result as string);
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                  />
-                </Button>
+              <Grid item xs={12} md={7}>
+                <TextField
+                  label="Tên sản phẩm"
+                  fullWidth
+                  {...register('name', { required: 'Tên không được để trống' })}
+                  error={!!errors.name}
+                  helperText={errors.name?.message}
+                  margin="normal"
+                  size="small"
+                />
+                <Controller
+                  name="category_id"
+                  control={control}
+                  defaultValue={0}
+                  render={({ field }) => (
+                    <TextField
+                      select
+                      label="Loại sản phẩm"
+                      fullWidth
+                      margin="normal"
+                      size="small"
+                      {...field}
+                    >
+                      {categories.map((cat: any) => (
+                        <MenuItem key={cat.category_id} value={cat.category_id}>
+                          {cat.category}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  )}
+                />
+
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <TextField
+                      label="Giá cơ bản (VNĐ)"
+                      type="number"
+                      fullWidth
+                      {...register('base_price', {
+                        valueAsNumber: true,
+                        required: 'Giá là bắt buộc',
+                        min: { value: 0, message: 'Giá không được âm' }
+                      })}
+                      error={!!errors.base_price}
+                      helperText={errors.base_price?.message}
+                      margin="normal"
+                      size="small"
+                      InputProps={{
+                        endAdornment: <Typography variant="caption">VNĐ</Typography>
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      label="Giá khuyến mãi"
+                      type="number"
+                      fullWidth
+                      {...register('sale_price', {
+                        valueAsNumber: true,
+                        min: { value: 0, message: 'Giá không được âm' }
+                      })}
+                      error={!!errors.sale_price}
+                      helperText={errors.sale_price?.message}
+                      margin="normal"
+                      size="small"
+                      InputProps={{
+                        endAdornment: <Typography variant="caption">VNĐ</Typography>
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+
+                <TextField
+                  label="Mô tả"
+                  fullWidth
+                  multiline
+                  rows={4}
+                  {...register('description')}
+                  margin="normal"
+                  size="small"
+                />
+
                 <Stack direction="row" spacing={2} mt={2}>
-                  <FormControlLabel control={<Checkbox {...register('status')} />} label="Hiển thị" />
-                  <FormControlLabel control={<Checkbox {...register('is_hot')} />} label="Hot trend" />
+                  <Controller
+                    name="status"
+                    control={control}
+                    render={({ field }) => (
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={field.value}
+                            onChange={field.onChange}
+                          />
+                        }
+                        label="Hiển thị"
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="is_hot"
+                    control={control}
+                    render={({ field }) => (
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={field.value}
+                            onChange={field.onChange}
+                          />
+                        }
+                        label="Hot trend"
+                      />
+                    )}
+                  />
                 </Stack>
+
                 <Divider sx={{ my: 3 }} />
-                <Button variant="contained" color="primary" type="submit" sx={{ borderRadius: 2 }}>
-                  {editingIndex !== null ? '✏️ Cập nhật' : ' Thêm sản phẩm'}
-                </Button>
-                <Button sx={{ ml: 2 }} onClick={() => { reset(); setEditingIndex(null); setFormVisible(false); }}>❌ Hủy</Button>
+
+                <Stack direction="row" spacing={2}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    type="submit"
+                    startIcon={<SaveIcon />}
+                    disabled={!isDirty}
+                    sx={{ borderRadius: 2 }}
+                  >
+                    {editingIndex !== null ? 'Cập nhật' : 'Thêm sản phẩm'}
+                  </Button>
+
+                  <Button
+                    variant="outlined"
+                    startIcon={<CancelIcon />}
+                    sx={{ borderRadius: 2 }}
+                    onClick={() => {
+                      reset();
+                      setEditingIndex(null);
+                      setFormVisible(false);
+                    }}
+                  >
+                    Hủy
+                  </Button>
+                </Stack>
               </Grid>
-              <Grid item xs={12} md={6}>
-                <Typography variant="h6" gutterBottom>
-                  Xem trước sản phẩm
-                </Typography>
-                <Paper elevation={3} sx={{ p: 2 }}>
-                  <img src={preview.main_image || 'https://via.placeholder.com/400x260?text=Preview'} alt="Preview" style={{ maxWidth: '100%', maxHeight: '200px' }} />
-                  <Typography variant="h6" fontWeight={600} mt={2}>{preview.name || 'Tên sản phẩm'}</Typography>
-                  <Typography variant="body2" color="text.secondary">{preview.short_description || 'Mô tả ngắn sẽ hiển thị ở đây'}</Typography>
-                  <Typography variant="subtitle1" mt={1}> {preview.base_price?.toLocaleString() || 0} VNĐ</Typography>
-                  <Stack direction="row" spacing={1} mt={2}>
-                    {preview.status && <Checkbox checked={preview.status} disabled size="small" />}
-                    {preview.is_hot && <Typography variant="caption" color="error">Hot</Typography>}
-                  </Stack>
+
+              <Grid item xs={12} md={5}>
+                <Paper elevation={2} sx={{ p: 2, borderRadius: 2 }}>
+                  <Typography variant="h6" gutterBottom sx={{ borderBottom: `1px solid ${theme.palette.divider}`, pb: 1 }}>
+                    Ảnh sản phẩm
+                  </Typography>
+
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: 200,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: `1px dashed ${theme.palette.divider}`,
+                      borderRadius: 1,
+                      mb: 2
+                    }}
+                  >
+                    <img
+                      id="previewImage"
+                      src={typeof preview.main_image === 'string' ? preview.main_image : 'https://via.placeholder.com/400x260?text=Chọn+ảnh'}
+                      alt="Preview"
+                      style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                    />
+                  </Box>
+
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    fullWidth
+                    sx={{ mt: 1 }}
+                  >
+                    Tải lên ảnh sản phẩm
+                    <input
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setValue('main_image', file, { shouldDirty: true });
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            document.getElementById('previewImage')?.setAttribute('src', reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </Button>
+                </Paper>
+
+                <Paper elevation={2} sx={{ p: 2, borderRadius: 2, mt: 3 }}>
+                  <Typography variant="h6" gutterBottom sx={{ borderBottom: `1px solid ${theme.palette.divider}`, pb: 1 }}>
+                    Xem trước sản phẩm
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      {preview.name || 'Tên sản phẩm'}
+                    </Typography>
+
+                    <Stack direction="row" spacing={1} mb={1}>
+                      {preview.status && (
+                        <Chip
+                          label="Hiển thị"
+                          size="small"
+                          color="success"
+                          variant="outlined"
+                        />
+                      )}
+                      {preview.is_hot && (
+                        <Chip
+                          icon={<HotIcon fontSize="small" />}
+                          label="Hot"
+                          size="small"
+                          color="error"
+                        />
+                      )}
+                    </Stack>
+
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      {preview.description || 'Mô tả sẽ hiển thị ở đây'}
+                    </Typography>
+
+                    <Stack direction="row" spacing={2} alignItems="center">
+                      <Typography variant="h6" color="primary">
+                        {Number(preview.base_price).toLocaleString()} VNĐ
+                      </Typography>
+
+                      {Number(preview.sale_price) > 0 && (
+                        <Typography variant="body2" color="error" sx={{ textDecoration: 'line-through' }}>
+                          {Number(preview.sale_price).toLocaleString()} VNĐ
+                        </Typography>
+                      )}
+                    </Stack>
+                  </Box>
                 </Paper>
               </Grid>
             </Grid>
@@ -181,39 +524,209 @@ const AdminProductPage = () => {
         </Paper>
       )}
 
-      {/* Danh sách sản phẩm dạng bảng */}
-      <Box mt={4}>
-        <Typography variant="h5" fontWeight={600} gutterBottom>Danh sách sản phẩm</Typography>
-        <TableContainer component={MuiPaper} sx={{ boxShadow: 2, borderRadius: 1 }}>
-          <Table>
+      {/* Danh sách sản phẩm */}
+      <Paper elevation={3} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+        <Box p={2} sx={{ bgcolor: theme.palette.primary.main, color: 'white' }}>
+          <Typography variant="h6" fontWeight={600}>
+            Danh sách sản phẩm ({products.length})
+          </Typography>
+        </Box>
+
+        <TableContainer sx={{ maxHeight: 600 }}>
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
-                <TableCell>Tên</TableCell>
-                <TableCell>Loại</TableCell>
-                <TableCell>Giá</TableCell>
-                <TableCell>Mô tả ngắn</TableCell>
-                <TableCell>Ảnh</TableCell>
-                <TableCell>Hành động</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', bgcolor: theme.palette.grey[100] }}>ID</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', bgcolor: theme.palette.grey[100] }}>Ảnh</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', bgcolor: theme.palette.grey[100] }}>Tên sản phẩm</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', bgcolor: theme.palette.grey[100] }}>Danh mục</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', bgcolor: theme.palette.grey[100] }}>Giá (VNĐ)</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', bgcolor: theme.palette.grey[100] }}>Trạng thái</TableCell>
+                <TableCell sx={{ fontWeight: 'bold', bgcolor: theme.palette.grey[100] }}>Ngày tạo</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: theme.palette.grey[100] }}>Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {products.map((product, index) => (
-                <TableRow key={index}>
-                  <TableCell>{product.name}</TableCell>
-                  <TableCell>{product.type}</TableCell>
-                  <TableCell>{product.base_price.toLocaleString()} VNĐ</TableCell>
-                  <TableCell>{product.short_description}</TableCell>
-                  <TableCell><img src={product.main_image || 'https://via.placeholder.com/100x100?text=No+Image'} alt={product.name} style={{ maxWidth: '100px', maxHeight: '100px' }} /></TableCell>
-                  <TableCell>
-                    <IconButton color="primary" onClick={() => handleEdit(index)}><EditIcon /></IconButton>
-                    <IconButton color="error" onClick={() => handleDelete(index)}><DeleteIcon /></IconButton>
+              {products.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                    <Typography variant="body1" color="text.secondary">
+                      Không có sản phẩm nào
+                    </Typography>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                products
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((product: any, index: number) => {
+                    const actualIndex = page * rowsPerPage + index;
+                    return (
+                      <TableRow
+                        key={product.product_id}
+                        hover
+                        sx={{
+                          '&:last-child td, &:last-child th': { border: 0 },
+                          bgcolor: editingIndex === actualIndex ? theme.palette.action.hover : 'inherit'
+                        }}
+                      >
+                        <TableCell>{product.product_id}</TableCell>
+                        <TableCell>
+                          <Avatar
+                            variant="rounded"
+                            src={product.main_image || 'https://via.placeholder.com/100x100?text=No+Image'}
+                            alt={product.name}
+                            sx={{ width: 60, height: 60 }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Stack direction="column" spacing={1}>
+                            <Typography variant="body1" fontWeight={500}>
+                              {product.name}
+                            </Typography>
+                            {product.is_hot && (
+                              <Chip
+                                icon={<HotIcon fontSize="small" />}
+                                label="Hot"
+                                size="small"
+                                color="error"
+                                sx={{ width: 'fit-content' }}
+                              />
+                            )}
+                          </Stack>
+                        </TableCell>
+                        <TableCell>
+                          {product.categories ? (
+                            <Chip
+                              label={product.categories.category}
+                              size="small"
+                              sx={{ bgcolor: theme.palette.primary.light, color: theme.palette.primary.contrastText }}
+                            />
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">
+                              Chưa phân loại
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={500}>
+                            {Number(product.base_price).toLocaleString()}
+                          </Typography>
+                          {product.sale_price !== "0" && (
+                            <Typography
+                              variant="body2"
+                              color="error"
+                              sx={{ textDecoration: 'line-through' }}
+                            >
+                              {Number(product.sale_price).toLocaleString()}
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={product.status ? "Hiển thị" : "Ẩn"}
+                            color={product.status ? "success" : "default"}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>{formatDate(product.created_at)}</TableCell>
+                        <TableCell>
+                          <Stack direction="row" spacing={1} justifyContent="center">
+                            <Tooltip title="Xem chi tiết">
+                              <IconButton
+                                size="small"
+                                color="info"
+                                onClick={() => handleView(product.product_id)}
+                              >
+                                <VisibilityIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Chỉnh sửa">
+                              <IconButton
+                                size="small"
+                                color="primary"
+                                onClick={() => handleEdit(actualIndex)}
+                              >
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Xóa">
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => handleDeleteClick(actualIndex)}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+              )}
             </TableBody>
           </Table>
         </TableContainer>
-      </Box>
+
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={products.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Số hàng mỗi trang:"
+          labelDisplayedRows={({ from, to, count }) => `${from}-${to} trên ${count}`}
+        />
+      </Paper>
+
+
+      {/* Dialog variant */}
+
+      {/* Dialog xác nhận xóa */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={cancelDelete}
+      >
+        <DialogTitle>
+          Xác nhận xóa sản phẩm
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {productToDelete !== null && products[productToDelete] && (
+              <>
+                Bạn có chắc chắn muốn xóa sản phẩm "{products[productToDelete].name}" không? Hành động này không thể hoàn tác.
+              </>
+            )}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelDelete} color="primary">
+            Hủy
+          </Button>
+          <Button onClick={confirmDelete} color="error" autoFocus>
+            Xóa
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar thông báo */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        onClose={closeSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={closeSnackbar}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -1,7 +1,9 @@
 {
   "dependencies": {
     "@reduxjs/toolkit": "^2.6.1",
+    "react-hook-form": "^7.55.0",
     "react-redux": "^9.2.0",
+    "recharts": "^2.15.2",
     "sweetalert2": "^11.17.2"
   }
 }

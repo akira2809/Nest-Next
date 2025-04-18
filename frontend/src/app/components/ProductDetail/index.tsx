@@ -186,11 +186,11 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
   const handleAddToCart = async () => {
 
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      alert("⚠️ Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!");
-      return;
-    }
+    // const token = localStorage.getItem("access_token");
+    // if (!token) {
+    //   alert("⚠️ Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!");
+    //   return;
+    // }
 
     if (!selectedSizeId || !selectedColorId) {
       setErrorMessage("Vui lòng chọn kích thước và màu sắc!");
@@ -210,9 +210,9 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         `http://localhost:3001/products/product_variant?${queryParams}`
       );
       if (!res.ok) {
+        console.log(res)
         throw new Error("Không tìm thấy biến thể sản phẩm");
       }
-
       const variant = await res.json();
 
       const productToAdd = {
@@ -246,8 +246,8 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
   const discountPercentage = product.sale_price
     ? Math.round(
-        ((product.base_price - product.sale_price) / product.base_price) * 100
-      )
+      ((product.base_price - product.sale_price) / product.base_price) * 100
+    )
     : 0;
 
   const displayPrice = product.sale_price || product.base_price;

@@ -3,7 +3,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axiosClient from '@/api/axiosClient';
 
 interface Product {
-  id: number;
+  product_id: number;
   name: string;
   price: number;
   image: string;
@@ -47,6 +47,53 @@ const initialState: ProductState = {
   error: null,
 };
 
+// export const fetchColors = createAsyncThunk(
+//   'product/fetchColors',
+//   async () => {
+//     const response = await axiosClient.get('/colors');
+//     return response.data;
+//   }
+// );
+
+// export const fetchSizes = createAsyncThunk(
+//   'product/fetchSizes',
+//   async () => {
+//     const response = await axiosClient.get('/sizes');
+//     return response.data;
+//   }
+// );
+
+// export const fetchProductVariants = createAsyncThunk(
+//   'product/fetchProductVariants',
+//   async (productId: number) => {
+//     const response = await axiosClient.get(`/products/${productId}/variants`);
+//     return response.data;
+//   }
+// );
+
+// export const addVariant = createAsyncThunk(
+//   'product/addVariant',
+//   async (variantData: Omit<any, 'product_variant_id'>) => {
+//     const response = await axiosClient.post('/product-variants', variantData);
+//     return response.data;
+//   }
+// );
+
+// export const updateVariant = createAsyncThunk(
+//   'product/updateVariant',
+//   async (variantData: any) => {
+//     const response = await axiosClient.put(`/product-variants/${variantData.product_variant_id}`, variantData);
+//     return response.data;
+//   }
+// );
+
+// export const deleteVariant = createAsyncThunk(
+//   'product/deleteVariant',
+//   async (variantId: number) => {
+//     await axiosClient.delete(`/product-variants/${variantId}`);
+//     return variantId;
+//   }
+// );
 // 🧃 Fetch data
 export const fetchAllProducts = createAsyncThunk('product/fetchAll', async (_, { rejectWithValue }) => {
   try {
@@ -85,6 +132,7 @@ export const filterProducts = createAsyncThunk(
 export const addProduct = createAsyncThunk('product/add', async (product: Omit<Product, 'id'>, { rejectWithValue }) => {
   try {
     const res = await axiosClient.post('/products', product);
+    console.log(res)
     return res.data;
   } catch (err: any) {
     return rejectWithValue(err.message);
@@ -93,7 +141,8 @@ export const addProduct = createAsyncThunk('product/add', async (product: Omit<P
 
 export const updateProduct = createAsyncThunk(
   'product/update',
-  async ({ id, data }: { id: number; data: Partial<Product> }, { rejectWithValue }) => {
+  async ({ id, data }: { id: number; data: any }, { rejectWithValue }) => {
+    console.log(data)
     try {
       const res = await axiosClient.patch(`/products/${id}`, data);
       return res.data;
@@ -154,15 +203,22 @@ const productSlice = createSlice({
       // Update Product
       .addCase(updateProduct.fulfilled, (state, action) => {
         const updated = action.payload;
-        state.products = state.products.map((p) => (p.id === updated.id ? updated : p));
-        state.filteredProducts = state.filteredProducts.map((p) => (p.id === updated.id ? updated : p));
+        console.log(updated);
+
+        state.products = state.products.map((p) =>
+          p.product_id === updated.product_id ? updated : p
+        );
+
+        state.filteredProducts = state.filteredProducts.map((p) =>
+          p.product_id === updated.product_id ? updated : p
+        );
       })
 
       // Delete Product
       .addCase(deleteProduct.fulfilled, (state, action) => {
         const id = action.payload;
-        state.products = state.products.filter((p) => p.id !== id);
-        state.filteredProducts = state.filteredProducts.filter((p) => p.id !== id);
+        state.products = state.products.filter((p) => p.product_id !== id);
+        state.filteredProducts = state.filteredProducts.filter((p) => p.product_id !== id);
       });
   },
 });
