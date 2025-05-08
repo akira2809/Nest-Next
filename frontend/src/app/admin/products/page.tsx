@@ -132,37 +132,9 @@ const AdminProductPage = () => {
 
     if (editingIndex !== null) {
       dispatch(updateProduct({ id: products[editingIndex].product_id, data: formData } as any))
-        .then(() => {
-          setSnackbar({
-            open: true,
-            message: "Sản phẩm đã được cập nhật thành công!",
-            severity: "success"
-          });
-          setEditingIndex(null);
-        })
-        .catch(() => {
-          setSnackbar({
-            open: true,
-            message: "Lỗi khi cập nhật sản phẩm!",
-            severity: "error"
-          });
-        });
+
     } else {
       dispatch(addProduct(formData as any))
-        .then(() => {
-          setSnackbar({
-            open: true,
-            message: "Đã thêm sản phẩm mới thành công!",
-            severity: "success"
-          });
-        })
-        .catch(() => {
-          setSnackbar({
-            open: true,
-            message: "Lỗi khi thêm sản phẩm mới!",
-            severity: "error"
-          });
-        });
     }
 
     reset();
@@ -203,26 +175,6 @@ const AdminProductPage = () => {
   const confirmDelete = () => {
     if (productToDelete !== null) {
       dispatch(deleteProduct(products[productToDelete].product_id))
-        .then(() => {
-          setSnackbar({
-            open: true,
-            message: "Sản phẩm đã được xóa thành công!",
-            severity: "success"
-          });
-
-          if (editingIndex === productToDelete) {
-            reset();
-            setEditingIndex(null);
-            setFormVisible(false);
-          }
-        })
-        .catch(() => {
-          setSnackbar({
-            open: true,
-            message: "Lỗi khi xóa sản phẩm!",
-            severity: "error"
-          });
-        });
     }
     setDeleteDialogOpen(false);
     setProductToDelete(null);
